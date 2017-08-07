@@ -1,8 +1,8 @@
 environment:
   matrix:
-    - TARGET: 1.18.0-x86_64-pc-windows
+    - TARGET: 1.19.0-x86_64-pc-windows
       COMPILER: gnu
-    - TARGET: 1.18.0-x86_64-pc-windows
+    - TARGET: 1.19.0-x86_64-pc-windows
       COMPILER: msvc
     - TARGET: nightly-x86_64-pc-windows
       COMPILER: msvc
@@ -15,9 +15,15 @@ install:
   - rustc -vV
   - cargo -vV
 build_script:
-  - cargo build --features vulkan
+  - >
+    cargo build --all --features vulkan
+    --exclude gfx_window_glfw
+    --exclude gfx_device_metal
+    --exclude gfx_device_metalll
+    --exclude gfx_window_metal
 test_script:
-  - cargo test --all --features vulkan
-  - cargo test -p gfx -p gfx_core --features "mint serialize"
-  - if %COMPILER%==msvc cargo test --all --features dx11
-  - if %COMPILER%==msvc cargo test --all --features dx12
+  # re: gfx is gfx_render
+  - cargo test -p gfx -p gfx_core
+
+  - if %COMPILER%==msvc cargo test -p gfx -p gfx_core --features dx11
+  - if %COMPILER%==msvc cargo test -p gfx -p gfx_core --features dx12
