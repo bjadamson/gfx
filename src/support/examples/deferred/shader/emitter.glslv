@@ -1,4 +1,4 @@
-#version 150 core
+#version 140
 
 in ivec3 a_Pos;
 

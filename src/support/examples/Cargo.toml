@@ -138,6 +138,10 @@ path = "mipmap/main.rs"
 name = "particle"
 path = "particle/main.rs"
 
+[[example]]
+name = "triangle"
+path = "triangle/main.rs"
+
 [dev-dependencies]
 cgmath = "0.15"
 gfx_gl = "0.3"

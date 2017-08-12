@@ -240,10 +240,7 @@ pub trait Application<B: Backend>: Sized {
         use gfx_core::format::Formatted;
 
         // Create GL window
-        let gl_version = glutin::GlRequest::GlThenGles {
-            opengl_version: (3, 2), // TODO: try more versions
-            opengles_version: (2, 0),
-        };
+        let gl_version = glutin::GlRequest::Latest;
         let builder = glutin::ContextBuilder::new()
                                             .with_gl(gl_version)
                                             .with_vsync(true);

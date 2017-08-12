@@ -1,4 +1,4 @@
-#version 150 core
+#version 140
 
 in ivec4 a_PosTexCoord;
 out vec2 v_TexCoord;

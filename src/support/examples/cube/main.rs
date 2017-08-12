@@ -73,7 +73,7 @@ impl<B: gfx::Backend> gfx_support::Application<B> for App<B> {
         use gfx::traits::DeviceExt;
 
         let vs = gfx_support::shade::Source {
-            glsl_120: include_bytes!("shader/cube_120.glslv"),
+            glsl_110: include_bytes!("shader/cube_110.glslv"),
             glsl_150: include_bytes!("shader/cube_150.glslv"),
             glsl_es_100: include_bytes!("shader/cube_100_es.glslv"),
             hlsl_40:  include_bytes!("data/vertex.fx"),
@@ -82,7 +82,7 @@ impl<B: gfx::Backend> gfx_support::Application<B> for App<B> {
             .. gfx_support::shade::Source::empty()
         };
         let ps = gfx_support::shade::Source {
-            glsl_120: include_bytes!("shader/cube_120.glslf"),
+            glsl_110: include_bytes!("shader/cube_110.glslf"),
             glsl_150: include_bytes!("shader/cube_150.glslf"),
             glsl_es_100: include_bytes!("shader/cube_100_es.glslf"),
             hlsl_40:  include_bytes!("data/pixel.fx"),

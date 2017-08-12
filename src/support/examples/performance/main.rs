@@ -49,8 +49,8 @@ gfx_defines!{
 }
 
 static VERTEX_SRC: &'static [u8] = b"
-    #version 150 core
-    in vec3 a_Pos;
+    #version 120
+    vec3 a_Pos;
     uniform mat4 u_Transform;
 
     void main() {
@@ -59,8 +59,8 @@ static VERTEX_SRC: &'static [u8] = b"
 ";
 
 static FRAGMENT_SRC: &'static [u8] = b"
-    #version 150 core
-    out vec4 o_Color;
+    #version 120
+     vec4 o_Color;
 
     void main() {
         o_Color = vec4(1.0, 0.0, 0.0, 1.0);

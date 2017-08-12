@@ -87,6 +87,7 @@ pub const EMPTY: &'static [u8] = &[];
 /// A type storing shader source for different graphics APIs and versions.
 #[derive(Copy, Clone, PartialEq, Debug)]
 pub struct Source<'a> {
+    pub glsl_110: &'a [u8],
     pub glsl_120: &'a [u8],
     pub glsl_130: &'a [u8],
     pub glsl_140: &'a [u8],
@@ -126,6 +127,7 @@ impl<'a> Source<'a> {
     /// structure members upon construction.
     pub fn empty() -> Source<'a> {
         Source {
+            glsl_110: EMPTY,
             glsl_120: EMPTY,
             glsl_130: EMPTY,
             glsl_140: EMPTY,
@@ -158,6 +160,7 @@ impl<'a> Source<'a> {
                     Source { glsl_140: s, .. } if s != EMPTY && v >= 140 => s,
                     Source { glsl_130: s, .. } if s != EMPTY && v >= 130 => s,
                     Source { glsl_120: s, .. } if s != EMPTY && v >= 120 => s,
+                    Source { glsl_110: s, .. } if s != EMPTY && v >= 110 => s,
                     _ => return Err(SelectError(backend)),
                 }
             }
@@ -183,7 +186,7 @@ impl<'a> Source<'a> {
             }
             #[cfg(feature = "dx12")]
             Backend::Hlsl(model) => {
-                return Err(SelectError(backend)) // TODO
+                return Err(SelectError(backend)); // TODO
             }
             #[cfg(feature = "metal")]
             Backend::Msl(revision) => {

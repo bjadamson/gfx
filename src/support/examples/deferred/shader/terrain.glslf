@@ -1,4 +1,4 @@
-#version 150 core
+#version 140
 
 in vec3 v_FragPos;
 in vec3 v_Normal;
