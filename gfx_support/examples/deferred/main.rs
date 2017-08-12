@@ -276,13 +276,13 @@ impl<B: gfx::Backend> gfx_support::Application<B> for App<B> {
             let (vbuf, slice) = device.create_vertex_buffer_with_slice(&vertex_data, &index_data[..]);
 
             let vs = gfx_support::shade::Source {
-                glsl_150: include_bytes!("shader/terrain.glslv"),
+                glsl_140: include_bytes!("shader/terrain.glslv"),
                 hlsl_40:  include_bytes!("data/terrain_vs.fx"),
                 msl_11:   include_bytes!("shader/terrain_vertex.metal"),
                 .. gfx_support::shade::Source::empty()
             };
             let ps = gfx_support::shade::Source {
-                glsl_150: include_bytes!("shader/terrain.glslf"),
+                glsl_140: include_bytes!("shader/terrain.glslf"),
                 hlsl_40:  include_bytes!("data/terrain_ps.fx"),
                 msl_11:   include_bytes!("shader/terrain_frag.metal"),
                 .. gfx_support::shade::Source::empty()
@@ -316,13 +316,13 @@ impl<B: gfx::Backend> gfx_support::Application<B> for App<B> {
             let (vbuf, slice) = device.create_vertex_buffer_with_slice(&vertex_data, ());
 
             let vs = gfx_support::shade::Source {
-                glsl_150: include_bytes!("shader/blit.glslv"),
+                glsl_140: include_bytes!("shader/blit.glslv"),
                 hlsl_40:  include_bytes!("data/blit_vs.fx"),
                 msl_11:   include_bytes!("shader/blit_vertex.metal"),
                 .. gfx_support::shade::Source::empty()
             };
             let ps = gfx_support::shade::Source {
-                glsl_150: include_bytes!("shader/blit.glslf"),
+                glsl_140: include_bytes!("shader/blit.glslf"),
                 hlsl_40:  include_bytes!("data/blit_ps.fx"),
                 msl_11:   include_bytes!("shader/blit_frag.metal"),
                 .. gfx_support::shade::Source::empty()
@@ -394,13 +394,13 @@ impl<B: gfx::Backend> gfx_support::Application<B> for App<B> {
 
         let light = {
             let vs = gfx_support::shade::Source {
-                glsl_150: include_bytes!("shader/light.glslv"),
+                glsl_140: include_bytes!("shader/light.glslv"),
                 hlsl_40:  include_bytes!("data/light_vs.fx"),
                 msl_11:   include_bytes!("shader/light_vertex.metal"),
                 .. gfx_support::shade::Source::empty()
             };
             let ps = gfx_support::shade::Source {
-                glsl_150: include_bytes!("shader/light.glslf"),
+                glsl_140: include_bytes!("shader/light.glslf"),
                 hlsl_40:  include_bytes!("data/light_ps.fx"),
                 msl_11:   include_bytes!("shader/light_frag.metal"),
                 .. gfx_support::shade::Source::empty()
@@ -429,13 +429,13 @@ impl<B: gfx::Backend> gfx_support::Application<B> for App<B> {
 
         let emitter = {
             let vs = gfx_support::shade::Source {
-                glsl_150: include_bytes!("shader/emitter.glslv"),
+                glsl_140: include_bytes!("shader/emitter.glslv"),
                 hlsl_40:  include_bytes!("data/emitter_vs.fx"),
                 msl_11:   include_bytes!("shader/emitter_vertex.metal"),
                 .. gfx_support::shade::Source::empty()
             };
             let ps = gfx_support::shade::Source {
-                glsl_150: include_bytes!("shader/emitter.glslf"),
+                glsl_140: include_bytes!("shader/emitter.glslf"),
                 hlsl_40:  include_bytes!("data/emitter_ps.fx"),
                 msl_11:   include_bytes!("shader/emitter_frag.metal"),
                 .. gfx_support::shade::Source::empty()

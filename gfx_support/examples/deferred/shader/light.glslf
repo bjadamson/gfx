@@ -1,4 +1,4 @@
-#version 150 core
+#version 140
 
 layout(std140)
 uniform LightLocals {

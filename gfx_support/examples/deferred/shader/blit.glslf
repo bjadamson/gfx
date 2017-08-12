@@ -1,4 +1,4 @@
-#version 150 core
+#version 140
 
 uniform sampler2D t_BlitTex;
 in vec2 v_TexCoord;
