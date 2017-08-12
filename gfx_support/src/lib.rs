@@ -154,13 +154,11 @@ fn run<A, B, S>((width, height): (u32, u32),
             .collect();
 
     let shader_backend = device.shader_backend();
-    let mut app = A::new(&mut device, &mut queue, shader_backend, WindowTargets {
+    let targets = WindowTargets {
         views: views,
         aspect_ratio: width as f32 / height as f32, //TODO
-    });
-
-    let mut harness = Harness::new();
-    let mut running = true;
+    };
+    let mut app = A::new(&mut device, &mut queue, shader_backend, targets);
 
     // TODO: For optimal performance we should use a ring-buffer
     let sync = SyncPrimitives {
@@ -169,26 +167,12 @@ fn run<A, B, S>((width, height): (u32, u32),
         frame_fence: device.create_fence(false),
     };
 
+    let mut harness = Harness::new();
     let mut graphics_pool = queue.create_graphics_pool(1);
+    let mut quit = false;
 
-    while running {
-        events_loop.poll_events(|event| {
-            if let glutin::Event::WindowEvent { event, .. } = event {
-                match event {
-                    winit::WindowEvent::Closed => running = false,
-                    winit::WindowEvent::KeyboardInput {
-                        input: winit::KeyboardInput {
-                            state: winit::ElementState::Pressed,
-                            virtual_keycode, ..
-                        }, ..
-                    }  if virtual_keycode == A::get_exit_key() => return,
-                    winit::WindowEvent::Resized(_width, _height) => {
-                        warn!("TODO: resize not implemented");
-                    },
-                    _ => app.on(event),
-                }
-            }
-        });
+    while !quit {
+        quit = app.handle_events(&mut events_loop, &mut device);
 
         graphics_pool.reset();
         let frame = swap_chain.acquire_frame(FrameSync::Semaphore(&sync.acquisition));
@@ -218,15 +202,51 @@ pub trait Application<B: Backend>: Sized {
     fn render(&mut self, frame: (gfx_core::Frame, &SyncPrimitives<B::Resources>),
                      pool: &mut GraphicsCommandPool<B>, queue: &mut GraphicsQueue<B>);
 
-    fn get_exit_key() -> Option<winit::VirtualKeyCode> {
-        Some(winit::VirtualKeyCode::Escape)
+    fn on_resize(&mut self, WindowTargets<B::Resources>) {
     }
-    fn on_resize(&mut self, WindowTargets<B::Resources>) {}
     fn on_resize_ext(&mut self, _device: &mut B::Device, targets: WindowTargets<B::Resources>) {
         self.on_resize(targets);
     }
+
+    /// Event handling extension point for user applications. Called once per frame, you can override this method to allow
+    /// your application to handle different window events.
+    ///
+    /// See documentation for "handle_events" to see exactly when this is called.
     fn on(&mut self, _event: winit::WindowEvent) {}
 
+    /// Default event handling, quitting the application if the user closes the window or presses the virtual `Escape` key.
+    ///
+    /// NOTE: If you override this method, the "on" method will not be called by default every frame and you will need to call
+    /// it yourself if you want to handle events using the "on" method for this trait.
+    ///
+    /// NOTE: Resive event handling is currently not implemented.
+    fn handle_events(&mut self, events_loop: &mut winit::EventsLoop, _device: &mut B::Device) -> bool  {
+        let mut quit = false;
+        events_loop.poll_events(|event| {
+            if let glutin::Event::WindowEvent { event, .. } = event {
+                match event {
+                    winit::WindowEvent::Closed => quit = true,
+                    winit::WindowEvent::KeyboardInput {
+                        input: winit::KeyboardInput {
+                            state: winit::ElementState::Pressed,
+                            virtual_keycode, ..
+                        }, ..
+                    } if virtual_keycode == Some(winit::VirtualKeyCode::Escape) => quit = true,
+                    winit::WindowEvent::Resized(_width, _height) => {
+                        warn!("TODO: resize not implemented");
+                    },
+                    _ => self.on(event),
+                }
+            }
+        });
+
+        quit
+    }
+
+    /// The default "GFX Application" entry point. GFX support examples tend to use this entry point to start their application.
+    /// This function will launch the GFX application, figuring out which backend to use at compile time on behalf of the user.
+    ///
+    /// Look through the different examples main.rs file for example invocations.
     fn launch_simple(name: &str) where Self: Application<DefaultBackend> {
         env_logger::init().unwrap();
         let events_loop = winit::EventsLoop::new();
