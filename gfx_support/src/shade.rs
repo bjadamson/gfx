@@ -112,7 +112,9 @@ pub struct SelectError(Backend);
 
 impl fmt::Display for SelectError {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        write!(f, "An error occurred when selecting the {:?} backend", self.0)
+        write!(f,
+               "An error occurred when selecting the {:?} backend",
+               self.0)
     }
 }
 

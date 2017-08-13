@@ -15,11 +15,9 @@
 #[macro_use]
 extern crate gfx;
 extern crate gfx_support;
-extern crate image;
 extern crate winit;
 
-use gfx_support::{BackbufferView, ColorFormat};
-use gfx::format::Rgba8;
+use gfx_support::{Application, BackbufferView, ColorFormat};
 use gfx::Bundle;
 use gfx::GraphicsPoolExt;
 
@@ -45,36 +43,19 @@ gfx_defines!{
 
 impl Vertex {
     fn new(p: [f32; 2], u: [f32; 2]) -> Vertex {
-        Vertex {
-            pos: p,
-            uv: u,
-        }
+        Vertex { pos: p, uv: u }
     }
 }
 
-fn load_texture<R, D>(device: &mut D, data: &[u8])
-                -> Result<gfx::handle::ShaderResourceView<R, [f32; 4]>, String> where
-                R: gfx::Resources, D: gfx::Device<R> {
-    use std::io::Cursor;
-    use gfx::texture as t;
-    let img = image::load(Cursor::new(data), image::PNG).unwrap().to_rgba();
-    let (width, height) = img.dimensions();
-    let kind = t::Kind::D2(width as t::Size, height as t::Size, t::AaMode::Single);
-    let (_, view) = device.create_texture_immutable_u8::<Rgba8>(kind, &[&img]).unwrap();
-    Ok(view)
-}
-
-const BLENDS: [&'static str; 9] = [
-    "Screen",
-    "Dodge",
-    "Burn",
-    "Overlay",
-    "Multiply",
-    "Add",
-    "Divide",
-    "Grain Extract",
-    "Grain Merge",
-];
+const BLENDS: [&'static str; 9] = ["Screen",
+                                   "Dodge",
+                                   "Burn",
+                                   "Overlay",
+                                   "Multiply",
+                                   "Add",
+                                   "Divide",
+                                   "Grain Extract",
+                                   "Grain Merge"];
 
 struct App<B: gfx::Backend> {
     bundle: Bundle<B, pipe::Data<B::Resources>>,
@@ -82,48 +63,47 @@ struct App<B: gfx::Backend> {
     views: Vec<BackbufferView<B::Resources>>,
 }
 
-impl<B: gfx::Backend> gfx_support::Application<B> for App<B> {
+impl<B: gfx::Backend> Application<B> for App<B> {
     fn new(device: &mut B::Device,
            _: &mut gfx::queue::GraphicsQueue<B>,
            backend: gfx_support::shade::Backend,
-           window_targets: gfx_support::WindowTargets<B::Resources>) -> Self
-    {
+           window_targets: gfx_support::WindowTargets<B::Resources>)
+           -> Self {
         use gfx::traits::DeviceExt;
 
         let vs = gfx_support::shade::Source {
             glsl_120: include_bytes!("shader/blend_120.glslv"),
             glsl_150: include_bytes!("shader/blend_150.glslv"),
-            hlsl_40:  include_bytes!("data/vertex.fx"),
-            .. gfx_support::shade::Source::empty()
+            hlsl_40: include_bytes!("data/vertex.fx"),
+            ..gfx_support::shade::Source::empty()
         };
         let ps = gfx_support::shade::Source {
             glsl_120: include_bytes!("shader/blend_120.glslf"),
             glsl_150: include_bytes!("shader/blend_150.glslf"),
-            hlsl_40:  include_bytes!("data/pixel.fx"),
-            .. gfx_support::shade::Source::empty()
+            hlsl_40: include_bytes!("data/pixel.fx"),
+            ..gfx_support::shade::Source::empty()
         };
 
         // fullscreen quad
-        let vertex_data = [
-            Vertex::new([-1.0, -1.0], [0.0, 1.0]),
-            Vertex::new([ 1.0, -1.0], [1.0, 1.0]),
-            Vertex::new([ 1.0,  1.0], [1.0, 0.0]),
+        let vertex_data = [Vertex::new([-1.0, -1.0], [0.0, 1.0]),
+                           Vertex::new([1.0, -1.0], [1.0, 1.0]),
+                           Vertex::new([1.0, 1.0], [1.0, 0.0]),
 
-            Vertex::new([-1.0, -1.0], [0.0, 1.0]),
-            Vertex::new([ 1.0,  1.0], [1.0, 0.0]),
-            Vertex::new([-1.0,  1.0], [0.0, 0.0]),
-        ];
+                           Vertex::new([-1.0, -1.0], [0.0, 1.0]),
+                           Vertex::new([1.0, 1.0], [1.0, 0.0]),
+                           Vertex::new([-1.0, 1.0], [0.0, 0.0])];
         let (vbuf, slice) = device.create_vertex_buffer_with_slice(&vertex_data, ());
 
-        let lena_texture = load_texture(device, &include_bytes!("image/lena.png")[..]).unwrap();
-        let tint_texture = load_texture(device, &include_bytes!("image/tint.png")[..]).unwrap();
+        let lena_texture = gfx_support::load_texture(device, &include_bytes!("image/lena.png")[..])
+            .unwrap();
+        let tint_texture = gfx_support::load_texture(device, &include_bytes!("image/tint.png")[..])
+            .unwrap();
         let sampler = device.create_sampler_linear();
 
-        let pso = device.create_pipeline_simple(
-            vs.select(backend).unwrap(),
-            ps.select(backend).unwrap(),
-            pipe::new()
-        ).unwrap();
+        let pso = device.create_pipeline_simple(vs.select(backend).unwrap(),
+                                    ps.select(backend).unwrap(),
+                                    pipe::new())
+            .unwrap();
 
         // we pass a integer to our shader to show what blending function we want
         // it to use. normally you'd have a shader program per technique, but for
@@ -149,9 +129,10 @@ impl<B: gfx::Backend> gfx_support::Application<B> for App<B> {
         }
     }
 
-    fn render(&mut self, (frame, sync): (gfx::Frame, &gfx_support::SyncPrimitives<B::Resources>),
-              pool: &mut gfx::GraphicsCommandPool<B>, queue: &mut gfx::queue::GraphicsQueue<B>)
-    {
+    fn render(&mut self,
+              (frame, sync): (gfx::Frame, &gfx_support::SyncPrimitives<B::Resources>),
+              pool: &mut gfx::GraphicsCommandPool<B>,
+              queue: &mut gfx::queue::GraphicsQueue<B>) {
         let (cur_color, _) = self.views[frame.id()].clone();
         self.bundle.data.out = cur_color;
 
@@ -162,7 +143,7 @@ impl<B: gfx::Backend> gfx_support::Application<B> for App<B> {
         encoder.clear(&self.bundle.data.out, [0.0; 4]);
         self.bundle.encode(&mut encoder);
         encoder.synced_flush(queue, &[&sync.rendering], &[], Some(&sync.frame_fence))
-               .expect("Could not flush encoder");
+            .expect("Could not flush encoder");
     }
 
     fn on(&mut self, event: winit::WindowEvent) {
@@ -187,6 +168,5 @@ impl<B: gfx::Backend> gfx_support::Application<B> for App<B> {
 }
 
 pub fn main() {
-    use gfx_support::Application;
     App::launch_simple("Blending example");
 }

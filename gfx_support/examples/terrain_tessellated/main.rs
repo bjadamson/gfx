@@ -19,7 +19,7 @@ extern crate gfx;
 extern crate gfx_support;
 extern crate noise;
 
-use gfx_support::{BackbufferView, ColorFormat, DepthFormat};
+use gfx_support::{Application, BackbufferView, ColorFormat, DepthFormat};
 use gfx::GraphicsPoolExt;
 
 use cgmath::{Deg, Matrix4, Point3, SquareMatrix, Vector3};
@@ -72,7 +72,7 @@ struct App<B: gfx::Backend> {
     start_time: Instant,
 }
 
-impl<B: gfx::Backend> gfx_support::Application<B> for App<B> {
+impl<B: gfx::Backend> Application<B> for App<B> {
     fn new(device: &mut B::Device,
            _: &mut gfx::queue::GraphicsQueue<B>,
            backend: gfx_support::shade::Backend,
@@ -200,6 +200,5 @@ impl<B: gfx::Backend> gfx_support::Application<B> for App<B> {
 }
 
 pub fn main() {
-    use gfx_support::Application;
     App::launch_simple("Terrain tessellation example");
 }

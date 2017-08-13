@@ -12,13 +12,14 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+extern crate env_logger;
 #[macro_use]
 extern crate log;
-extern crate env_logger;
-extern crate winit;
-extern crate glutin;
+extern crate image;
 extern crate gfx;
 extern crate gfx_core;
+extern crate glutin;
+extern crate winit;
 
 #[cfg(feature = "gl")]
 extern crate gfx_device_gl;
@@ -44,8 +45,8 @@ extern crate gfx_window_vulkan;
 
 use gfx::memory::Typed;
 use gfx::queue::GraphicsQueue;
-use gfx::{Adapter, Backend, CommandQueue, FrameSync, GraphicsCommandPool,
-          SwapChain, QueueType, WindowExt};
+use gfx::{Adapter, Backend, CommandQueue, FrameSync, GraphicsCommandPool, SwapChain, QueueType,
+          WindowExt};
 
 pub mod shade;
 
@@ -103,13 +104,13 @@ impl Drop for Harness {
 }
 
 fn run<A, B, S>((width, height): (u32, u32),
-                    mut events_loop: winit::EventsLoop,
-                    mut surface: S,
-                    adapters: Vec<B::Adapter>)
+                mut events_loop: winit::EventsLoop,
+                mut surface: S,
+                adapters: Vec<B::Adapter>)
     where A: Sized + Application<B>,
           B: Backend,
           S: gfx_core::Surface<B>,
-          B::Device: shade::ShadeExt,
+          B::Device: shade::ShadeExt
 {
     use shade::ShadeExt;
     use gfx::format::Formatted;
@@ -117,46 +118,45 @@ fn run<A, B, S>((width, height): (u32, u32),
     use gfx::texture;
 
     // Init device, requesting (at least) one graphics queue with presentation support
-    let gfx_core::Gpu { mut device, mut graphics_queues, .. } =
-        adapters[0].open_with(|family, ty| ((ty.supports_graphics() && surface.supports_queue(&family)) as u32, QueueType::Graphics));
+    let gfx_core::Gpu { mut device, mut graphics_queues, .. } = adapters[0]
+        .open_with(|family, ty| {
+            ((ty.supports_graphics() && surface.supports_queue(&family)) as u32,
+             QueueType::Graphics)
+        });
     let mut queue = graphics_queues.pop().expect("Unable to find a graphics queue.");
 
     let config = gfx_core::SwapchainConfig::new()
-                    .with_color::<ColorFormat>()
-                    .with_depth_stencil::<DepthFormat>();
+        .with_color::<ColorFormat>()
+        .with_depth_stencil::<DepthFormat>();
     let mut swap_chain = surface.build_swapchain(config, &queue);
 
-    let views =
-        swap_chain
-            .get_backbuffers()
-            .iter()
-            .map(|&(ref color, ref ds)| {
-                let color_desc = texture::RenderDesc {
-                    channel: ColorFormat::get_format().1,
-                    level: 0,
-                    layer: None,
-                };
-                let rtv = device.view_texture_as_render_target_raw(color, color_desc)
-                                 .unwrap();
+    let views = swap_chain.get_backbuffers()
+        .iter()
+        .map(|&(ref color, ref ds)| {
+            let color_desc = texture::RenderDesc {
+                channel: ColorFormat::get_format().1,
+                level: 0,
+                layer: None,
+            };
+            let rtv = device.view_texture_as_render_target_raw(color, color_desc)
+                .unwrap();
 
-                let ds_desc = texture::DepthStencilDesc {
-                    level: 0,
-                    layer: None,
-                    flags: texture::DepthStencilFlags::empty(),
-                };
-                let dsv = device.view_texture_as_depth_stencil_raw(
-                                    ds.as_ref().unwrap(),
-                                    ds_desc)
-                                 .unwrap();
+            let ds_desc = texture::DepthStencilDesc {
+                level: 0,
+                layer: None,
+                flags: texture::DepthStencilFlags::empty(),
+            };
+            let dsv = device.view_texture_as_depth_stencil_raw(ds.as_ref().unwrap(), ds_desc)
+                .unwrap();
 
-                (Typed::new(rtv), Typed::new(dsv))
-            })
-            .collect();
+            (Typed::new(rtv), Typed::new(dsv))
+        })
+        .collect();
 
     let shader_backend = device.shader_backend();
     let targets = WindowTargets {
         views: views,
-        aspect_ratio: width as f32 / height as f32, //TODO
+        aspect_ratio: width as f32 / height as f32, // TODO
     };
     let mut app = A::new(&mut device, &mut queue, shader_backend, targets);
 
@@ -185,25 +185,41 @@ fn run<A, B, S>((width, height): (u32, u32),
     }
 }
 
-#[cfg(all(feature = "gl", not(any(feature = "dx11", feature = "dx12", feature = "metal", feature = "vulkan"))))]
-pub type DefaultBackend = gfx_device_gl::Backend;
-#[cfg(feature = "dx11")]
-pub type DefaultBackend = gfx_device_dx11::Backend;
-#[cfg(feature = "dx12")]
-pub type DefaultBackend = gfx_device_dx12::Backend;
-#[cfg(feature = "metal")]
-pub type DefaultBackend = gfx_device_metal::Backend;
-#[cfg(feature = "vulkan")]
-pub type DefaultBackend = gfx_device_vulkan::Backend;
 
+/// gfx_support "Helper functions."
+///
+/// Loads a texture into a device created immutable buffer.
+pub fn load_texture<R, D>(device: &mut D,
+                          data: &[u8])
+                          -> Result<gfx::handle::ShaderResourceView<R, [f32; 4]>, String>
+    where R: gfx::Resources,
+          D: gfx::Device<R>
+{
+    use std::io::Cursor;
+    use gfx::texture as t;
+    let img = image::load(Cursor::new(data), image::PNG).unwrap().to_rgba();
+    let (width, height) = img.dimensions();
+    let kind = t::Kind::D2(width as t::Size, height as t::Size, t::AaMode::Single);
+    let (_, view) = device.create_texture_immutable_u8::<ColorFormat>(kind, &[&img]).unwrap();
+    Ok(view)
+}
+
+/// Trait used by gfx_support examples.
+///
+/// Contains overridable methods that allow gfx examples to be extended but still re-use common
+/// components.
 pub trait Application<B: Backend>: Sized {
-    fn new(&mut B::Device, &mut GraphicsQueue<B>,
-           shade::Backend, WindowTargets<B::Resources>) -> Self;
-    fn render(&mut self, frame: (gfx_core::Frame, &SyncPrimitives<B::Resources>),
-                     pool: &mut GraphicsCommandPool<B>, queue: &mut GraphicsQueue<B>);
+    fn new(&mut B::Device,
+           &mut GraphicsQueue<B>,
+           shade::Backend,
+           WindowTargets<B::Resources>)
+           -> Self;
+    fn render(&mut self,
+              frame: (gfx_core::Frame, &SyncPrimitives<B::Resources>),
+              pool: &mut GraphicsCommandPool<B>,
+              queue: &mut GraphicsQueue<B>);
 
-    fn on_resize(&mut self, WindowTargets<B::Resources>) {
-    }
+    fn on_resize(&mut self, WindowTargets<B::Resources>) {}
     fn on_resize_ext(&mut self, _device: &mut B::Device, targets: WindowTargets<B::Resources>) {
         self.on_resize(targets);
     }
@@ -220,7 +236,10 @@ pub trait Application<B: Backend>: Sized {
     /// it yourself if you want to handle events using the "on" method for this trait.
     ///
     /// NOTE: Resive event handling is currently not implemented.
-    fn handle_events(&mut self, events_loop: &mut winit::EventsLoop, _device: &mut B::Device) -> bool  {
+    fn handle_events(&mut self,
+                     events_loop: &mut winit::EventsLoop,
+                     _device: &mut B::Device)
+                     -> bool {
         let mut quit = false;
         events_loop.poll_events(|event| {
             if let glutin::Event::WindowEvent { event, .. } = event {
@@ -234,7 +253,7 @@ pub trait Application<B: Backend>: Sized {
                     } if virtual_keycode == Some(winit::VirtualKeyCode::Escape) => quit = true,
                     winit::WindowEvent::Resized(_width, _height) => {
                         warn!("TODO: resize not implemented");
-                    },
+                    }
                     _ => self.on(event),
                 }
             }
@@ -247,7 +266,9 @@ pub trait Application<B: Backend>: Sized {
     /// This function will launch the GFX application, figuring out which backend to use at compile time on behalf of the user.
     ///
     /// Look through the different examples main.rs file for example invocations.
-    fn launch_simple(name: &str) where Self: Application<DefaultBackend> {
+    fn launch_simple(name: &str)
+        where Self: Application<DefaultBackend>
+    {
         env_logger::init().unwrap();
         let events_loop = winit::EventsLoop::new();
         let wb = winit::WindowBuilder::new().with_title(name);
@@ -262,9 +283,11 @@ pub trait Application<B: Backend>: Sized {
         // Create GL window
         let gl_version = glutin::GlRequest::Latest;
         let builder = glutin::ContextBuilder::new()
-                                            .with_gl(gl_version)
-                                            .with_vsync(true);
-        let context = gfx_window_glutin::config_context(builder, ColorFormat::get_format(), DepthFormat::get_format());
+            .with_gl(gl_version)
+            .with_vsync(true);
+        let context = gfx_window_glutin::config_context(builder,
+                                                        ColorFormat::get_format(),
+                                                        DepthFormat::get_format());
         let win = glutin::GlWindow::new(wb, context, &events_loop).unwrap();
         let dim = win.get_inner_size_points().unwrap();
         let mut window = gfx_window_glutin::Window::new(win);
@@ -318,3 +341,14 @@ pub trait Application<B: Backend>: Sized {
         run::<Self, _, _>(dim, events_loop, surface, adapters)
     }
 }
+
+#[cfg(all(feature = "gl", not(any(feature = "dx11", feature = "dx12", feature = "metal", feature = "vulkan"))))]
+pub type DefaultBackend = gfx_device_gl::Backend;
+#[cfg(feature = "dx11")]
+pub type DefaultBackend = gfx_device_dx11::Backend;
+#[cfg(feature = "dx12")]
+pub type DefaultBackend = gfx_device_dx12::Backend;
+#[cfg(feature = "metal")]
+pub type DefaultBackend = gfx_device_metal::Backend;
+#[cfg(feature = "vulkan")]
+pub type DefaultBackend = gfx_device_vulkan::Backend;

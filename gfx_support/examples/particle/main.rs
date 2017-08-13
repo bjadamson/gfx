@@ -19,7 +19,7 @@ extern crate gfx_support;
 
 use std::time::Instant;
 
-use gfx_support::{BackbufferView, ColorFormat};
+use gfx_support::{Application, BackbufferView, ColorFormat};
 use gfx::{Bundle, Device, GraphicsPoolExt, ShaderSet, Primitive, buffer, Bind, Slice};
 use gfx::state::Rasterizer;
 
@@ -75,7 +75,7 @@ fn create_shader_set<R: gfx::Resources, D: gfx::Device<R>>(device: &mut D, vs_co
     ShaderSet::Geometry(vs, gs, ps)
 }
 
-impl<B: gfx::Backend> gfx_support::Application<B> for App<B> {
+impl<B: gfx::Backend> Application<B> for App<B> {
     fn new(device: &mut B::Device,
            _: &mut gfx::queue::GraphicsQueue<B>,
            backend: gfx_support::shade::Backend,
@@ -202,6 +202,5 @@ impl<B: gfx::Backend> gfx_support::Application<B> for App<B> {
 }
 
 pub fn main() {
-    use gfx_support::Application;
     App::launch_simple("Particle example");
 }

@@ -19,7 +19,7 @@ extern crate gfx_support;
 extern crate winit;
 
 use gfx::{Device, GraphicsPoolExt};
-use gfx_support::{ColorFormat, DepthFormat};
+use gfx_support::{Application, ColorFormat, DepthFormat};
 
 #[cfg(feature="metal")]
 pub use gfx::format::Depth32F as Depth;
@@ -426,7 +426,7 @@ impl<B: gfx::Backend> App<B> {
     }
 }
 
-impl<B: gfx::Backend> gfx_support::Application<B> for App<B> {
+impl<B: gfx::Backend> Application<B> for App<B> {
     fn new(device: &mut B::Device,
            queue: &mut gfx::queue::GraphicsQueue<B>,
            backend: gfx_support::shade::Backend,
@@ -635,6 +635,5 @@ impl<B: gfx::Backend> gfx_support::Application<B> for App<B> {
 // Section-6: main entry point
 
 pub fn main() {
-    use gfx_support::Application;
     App::launch_simple("Shadow example");
 }

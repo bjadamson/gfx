@@ -17,7 +17,7 @@ extern crate gfx;
 extern crate gfx_support;
 
 use gfx::{texture, Device, GraphicsPoolExt};
-use gfx_support::{BackbufferView, ColorFormat};
+use gfx_support::{Application, BackbufferView, ColorFormat};
 
 gfx_defines!{
     vertex Vertex {
@@ -66,7 +66,7 @@ struct App<B: gfx::Backend> {
     slice: gfx::Slice<B::Resources>,
 }
 
-impl<B: gfx::Backend> gfx_support::Application<B> for App<B> {
+impl<B: gfx::Backend> Application<B> for App<B> {
     fn new(device: &mut B::Device,
            _: &mut gfx::queue::GraphicsQueue<B>,
            backend: gfx_support::shade::Backend,
@@ -145,6 +145,5 @@ impl<B: gfx::Backend> gfx_support::Application<B> for App<B> {
 }
 
 pub fn main() {
-    use gfx_support::Application;
     App::launch_simple("Mipmap example");
 }

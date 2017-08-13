@@ -17,36 +17,20 @@ extern crate genmesh;
 #[macro_use]
 extern crate gfx;
 extern crate gfx_support;
-extern crate image;
 extern crate winit;
 
 use gfx::GraphicsPoolExt;
-use gfx_support::{BackbufferView, ColorFormat, DepthFormat};
+use gfx_support::{Application, BackbufferView, ColorFormat, DepthFormat};
 
 use cgmath::{Deg, Matrix4, Point3, SquareMatrix, Vector3};
 use genmesh::{Vertices, Triangulate};
 use genmesh::generators::{Plane, SharedVertex, IndexedPolygon};
 use gfx::traits::DeviceExt;
-use std::io::Cursor;
 
 // this is a value based on a max buffer size (and hence tilemap size) of 64x64
 // I imagine you would have a max buffer length, with multiple TileMap instances
 // of varying sizes based on current screen resolution
 pub const TILEMAP_BUF_LENGTH: usize = 4096;
-
-// texture loading boilerplate
-pub fn load_texture<R, D>(device: &mut D, data: &[u8])
-                    -> Result<gfx::handle::ShaderResourceView<R, [f32; 4]>, String>
-        where R: gfx::Resources, D: gfx::Device<R>
-{
-    use gfx::format::Rgba8;
-    use gfx::texture as t;
-    let img = image::load(Cursor::new(data), image::PNG).unwrap().to_rgba();
-    let (width, height) = img.dimensions();
-    let kind = t::Kind::D2(width as t::Size, height as t::Size, t::AaMode::Single);
-    let (_, view) = device.create_texture_immutable_u8::<Rgba8>(kind, &[&img]).unwrap();
-    Ok(view)
-}
 
 // Actual tilemap data that makes up the elements of the UBO.
 // NOTE: It may be a bug, but it appears that
@@ -160,7 +144,7 @@ impl<B> TileMapPlane<B> where B: gfx::Backend {
 
         let (vbuf, slice) = device.create_vertex_buffer_with_slice(&vertex_data, &index_data[..]);
 
-        let tile_texture = load_texture(device, tilesheet_bytes).unwrap();
+        let tile_texture = gfx_support::load_texture(device, tilesheet_bytes).unwrap();
 
         let params = pipe::Data {
             vbuf: vbuf,
@@ -399,7 +383,7 @@ fn populate_tilemap<B>(tilemap: &mut TileMap<B>, tilemap_size: [usize; 2]) where
     tilemap.set_tile(6,11,[2.0, 2.0, 0.0, 0.0]);
 }
 
-impl<B: gfx::Backend> gfx_support::Application<B> for TileMap<B> {
+impl<B: gfx::Backend> Application<B> for TileMap<B> {
     fn new(device: &mut B::Device,
            _: &mut gfx::queue::GraphicsQueue<B>,
            backend: gfx_support::shade::Backend,
@@ -517,6 +501,5 @@ impl<B: gfx::Backend> gfx_support::Application<B> for TileMap<B> {
 }
 
 pub fn main() {
-    use gfx_support::Application;
     TileMap::launch_simple("Tilemap example");
 }

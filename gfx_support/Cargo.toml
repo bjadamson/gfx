@@ -36,6 +36,7 @@ gl = ["gfx_device_gl", "gfx_window_glutin"]
 log = "0.3"
 env_logger = "0.4"
 glutin = "0.9"
+image = "0.15"
 winit = "0.7"
 gfx_core = { path = "../gfx_core/core", version = "0.7.1" }
 gfx = { path = "../gfx_render", version = "0.16" }
@@ -49,4 +50,3 @@ gfx_gl = "0.3"
 rand = "0.3"
 genmesh = "0.5"
 noise = "0.4"
-image = "0.15"
