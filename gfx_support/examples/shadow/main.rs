@@ -622,16 +622,6 @@ impl<B: gfx::Backend> gfx_support::Application<B> for App<B> {
                .expect("Could not flush encoder");
     }
 
-    fn get_exit_key() -> Option<winit::VirtualKeyCode> {
-        Some(winit::VirtualKeyCode::Escape)
-    }
-
-    fn on(&mut self, event: winit::WindowEvent) {
-        match event {
-            _ => () //TODO
-        }
-    }
-
     fn on_resize(&mut self, window_targets: gfx_support::WindowTargets<B::Resources>) {
         for ent in self.scene.share.write().unwrap().entities.iter_mut() {
             ent.batch_forward.out_color = window_targets.views[0].0.clone();
