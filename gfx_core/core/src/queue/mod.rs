@@ -28,10 +28,10 @@
 pub mod capability;
 pub mod submission;
 
-use {pso, Backend, Resources, handle};
-use command::{AccessInfo, Submit};
-use pool::{GeneralCommandPool, GraphicsCommandPool, ComputeCommandPool,
-           TransferCommandPool, RawCommandPool};
+use {Backend, handle};
+use command::AccessInfo;
+use pool::{GeneralCommandPool, GraphicsCommandPool, ComputeCommandPool, TransferCommandPool,
+           RawCommandPool};
 
 pub use self::capability::{Capability, Compute, Graphics, General, Transfer, Supports, SupportedBy};
 pub use self::submission::{RawSubmission, Submission};
@@ -64,7 +64,9 @@ impl QueueType {
 
     /// Checks for graphics functionality support.
     /// Supported by general, graphics and compute queues.
-    pub fn supports_transfer(&self) -> bool { true }
+    pub fn supports_transfer(&self) -> bool {
+        true
+    }
 }
 
 /// `QueueFamily` denotes a group of command queues provided by the backend
@@ -87,12 +89,11 @@ pub trait CommandQueue<B: Backend> {
     /// Trying to submit compute commands to a graphics queue will result in undefined behavior.
     /// Each queue implements safe wrappers according to their supported functionalities!
     // TODO: `access` legacy (handle API)
-    unsafe fn submit_raw<'a, I>(
-        &mut self,
-        submit_infos: I,
-        fence: Option<&handle::Fence<B::Resources>>,
-        access: &AccessInfo<B::Resources>,
-    ) where I: Iterator<Item=RawSubmission<'a, B>>;
+    unsafe fn submit_raw<'a, I>(&mut self,
+                                submit_infos: I,
+                                fence: Option<&handle::Fence<B::Resources>>,
+                                access: &AccessInfo<B::Resources>)
+        where I: Iterator<Item = RawSubmission<'a, B>>;
 
     /// Pin everything from this handle manager to live for a frame.
     // TODO: legacy (handle API)
@@ -105,9 +106,9 @@ pub trait CommandQueue<B: Backend> {
 
 macro_rules! define_queue {
     () => ();
-    // Bare queue definitions
+// Bare queue definitions
     ($queue:ident $capability:ident $($tail:ident)*) => (
-        ///
+///
         pub struct $queue<B: Backend>(B::CommandQueue);
 
         impl<B: Backend> CommandQueue<B> for $queue<B> {
@@ -134,7 +135,7 @@ macro_rules! define_queue {
                 $queue(queue)
             }
 
-            ///
+///
             pub fn submit<C>(
                 &mut self,
                 submit_infos: &[Submission<B, C>],

@@ -47,10 +47,14 @@ impl<R: Resources> Raw<R> {
     }
 
     #[doc(hidden)]
-    pub fn resource(&self) -> &R::Texture { &self.resource }
+    pub fn resource(&self) -> &R::Texture {
+        &self.resource
+    }
 
     /// Get texture descriptor
-    pub fn get_info(&self) -> &Info { &self.info }
+    pub fn get_info(&self) -> &Info {
+        &self.info
+    }
 }
 
 impl<R: Resources + cmp::PartialEq> cmp::PartialEq for Raw<R> {
@@ -87,8 +91,10 @@ pub enum CreationError {
 impl fmt::Display for CreationError {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         match *self {
-            CreationError::Format(surf, chan) => write!(f, "{}: ({:?}, {:?})",
-                                                self.description(), surf, chan),
+            CreationError::Format(surf, chan) => {
+                write!(f, "{}: ({:?}, {:?})",
+                                                self.description(), surf, chan)
+            }
             CreationError::Samples(aa) => write!(f, "{}: {:?}", self.description(), aa),
             CreationError::Size(size) => write!(f, "{}: {}", self.description(), size),
             CreationError::Data(data) => write!(f, "{}: {}", self.description(), data),
@@ -105,8 +111,12 @@ impl Error for CreationError {
             CreationError::Kind => "The kind doesn't support a particular operation",
             CreationError::Samples(_) => "Failed to map a given multisampled kind to the device",
             CreationError::Size(_) => "Unsupported size in one of the dimensions",
-            CreationError::Data(_) => "The given data has a different size than the target texture slice",
-            CreationError::Usage(_) => "The expected texture usage mode is not supported by a graphic API",
+            CreationError::Data(_) => {
+                "The given data has a different size than the target texture slice"
+            }
+            CreationError::Usage(_) => {
+                "The expected texture usage mode is not supported by a graphic API"
+            }
         }
     }
 }
@@ -124,7 +134,9 @@ impl fmt::Display for LayerError {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         match *self {
             LayerError::NotExpected(kind) => write!(f, "{}: {:?}", self.description(), kind),
-            LayerError::OutOfBounds(layer, count) => write!(f, "{}: {}/{}", self.description(), layer, count),
+            LayerError::OutOfBounds(layer, count) => {
+                write!(f, "{}: {}/{}", self.description(), layer, count)
+            }
         }
     }
 }
@@ -212,7 +224,7 @@ pub enum FilterMethod {
     Trilinear,
     /// Anisotropic filtering with a given "max", must be between 1 and 16,
     /// inclusive.
-    Anisotropic(u8)
+    Anisotropic(u8),
 }
 
 /// The face of a cube texture to do an operation on.
@@ -230,11 +242,12 @@ pub enum CubeFace {
 }
 
 /// A constant array of cube faces in the order they map to the hardware.
-pub const CUBE_FACES: [CubeFace; 6] = [
-    CubeFace::PosX, CubeFace::NegX,
-    CubeFace::PosY, CubeFace::NegY,
-    CubeFace::PosZ, CubeFace::NegZ,
-];
+pub const CUBE_FACES: [CubeFace; 6] = [CubeFace::PosX,
+                                       CubeFace::NegX,
+                                       CubeFace::PosY,
+                                       CubeFace::NegY,
+                                       CubeFace::PosZ,
+                                       CubeFace::NegZ];
 
 /// Specifies the kind of a texture storage to be allocated.
 #[derive(Clone, Copy, Debug, Eq, Hash, Ord, PartialEq, PartialOrd)]
@@ -269,7 +282,7 @@ impl Kind {
             Kind::D2Array(w, h, a, s) => (w, h, a as Size, s),
             Kind::D3(w, h, d) => (w, h, d, s0),
             Kind::Cube(w) => (w, w, 6, s0),
-            Kind::CubeArray(w, a) => (w, w, 6 * (a as Size), s0)
+            Kind::CubeArray(w, a) => (w, w, 6 * (a as Size), s0),
         }
     }
     /// Get the dimensionality of a particular mipmap level.
@@ -291,8 +304,8 @@ impl Kind {
         let (w, h, d, aa) = self.get_dimensions();
         let dominant = max(max(w, h), d);
         if aa == AaMode::Single {
-            (1..).find(|level| dominant>>level <= 1).unwrap()
-        }else {
+            (1..).find(|level| dominant >> level <= 1).unwrap()
+        } else {
             1 // anti-aliased textures can't have mipmaps
         }
     }
@@ -308,7 +321,8 @@ impl Kind {
     /// Check if it's one of the cube kinds.
     pub fn is_cube(&self) -> bool {
         match *self {
-            Kind::Cube(_) | Kind::CubeArray(_, _) => true,
+            Kind::Cube(_) |
+            Kind::CubeArray(_, _) => true,
             _ => false,
         }
     }
@@ -343,9 +357,7 @@ impl<F> ImageInfoCommon<F> {
     /// Get the total number of texels.
     pub fn get_texel_count(&self) -> usize {
         use std::cmp::max;
-        max(1, self.width) as usize *
-        max(1, self.height) as usize *
-        max(1, self.depth) as usize
+        max(1, self.width) as usize * max(1, self.height) as usize * max(1, self.depth) as usize
     }
 
     /// Convert into a differently typed format.
@@ -364,9 +376,7 @@ impl<F> ImageInfoCommon<F> {
 
     /// Check if it fits inside given dimensions.
     pub fn is_inside(&self, (w, h, d, aa): Dimensions) -> bool {
-        aa == AaMode::Single &&
-        self.xoffset + self.width <= w &&
-        self.yoffset + self.height <= h &&
+        aa == AaMode::Single && self.xoffset + self.width <= w && self.yoffset + self.height <= h &&
         self.zoffset + self.depth <= d
     }
 }
@@ -418,17 +428,15 @@ pub struct PackedColor(pub u32);
 
 impl From<[f32; 4]> for PackedColor {
     fn from(c: [f32; 4]) -> PackedColor {
-        PackedColor(c.iter().rev().fold(0, |u, &c| {
-            (u<<8) + (c * 255.0) as u32
-        }))
+        PackedColor(c.iter().rev().fold(0, |u, &c| (u << 8) + (c * 255.0) as u32))
     }
 }
 
 impl Into<[f32; 4]> for PackedColor {
     fn into(self) -> [f32; 4] {
         let mut out = [0.0; 4];
-        for i in 0 .. 4 {
-            let byte = (self.0 >> (i<<3)) & 0xFF;
+        for i in 0..4 {
+            let byte = (self.0 >> (i << 3)) & 0xFF;
             out[i] = byte as f32 / 255.0;
         }
         out
@@ -530,14 +538,14 @@ pub struct RenderDesc {
 }
 
 bitflags!(
-    /// Depth-stencil read-only flags
+/// Depth-stencil read-only flags
     #[cfg_attr(feature = "serialize", derive(Serialize, Deserialize))]
     pub flags DepthStencilFlags: u8 {
-        /// Depth is read-only in the view.
+/// Depth is read-only in the view.
         const RO_DEPTH    = 0x1,
-        /// Stencil is read-only in the view.
+/// Stencil is read-only in the view.
         const RO_STENCIL  = 0x2,
-        /// Both depth and stencil are read-only.
+/// Both depth and stencil are read-only.
         const RO_DEPTH_STENCIL = 0x3,
     }
 );

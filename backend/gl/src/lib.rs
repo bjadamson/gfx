@@ -956,12 +956,14 @@ impl CommandQueue {
         }
     }
 
+    /*
     fn wait_fence(&mut self, fence: &handle::Fence<Resources>) {
         device::wait_fence(
             &*self.frame_handles.ref_fence(&fence).lock().unwrap(),
             &self.share.context,
             1_000_000);
     }
+    */
 }
 
 impl c::CommandQueue<Backend> for CommandQueue {
@@ -1030,7 +1032,7 @@ impl c::CommandQueue<Backend> for CommandQueue {
             |_, _| {}, //RTV
             |_, _| {}, //DSV
             |gl, v| unsafe { if v.object != 0 { gl.DeleteSamplers(1, &v.object) }},
-            |gl, fence| { fence.get_mut().map(|fence| unsafe { gl.DeleteSync(fence.0) }); },
+            |gl, fence| { fence.get_mut().map(|fence| unsafe { gl.DeleteSync(fence.0) }).unwrap(); },
             |_, _| {}, // Semaphore
         );
     }

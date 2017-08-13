@@ -57,15 +57,21 @@ pub enum Instanced {}
 
 impl ToInstanceRate for InstanceRate {
     type Init = InstanceRate;
-    fn get_rate(init: &Self::Init) -> InstanceRate { *init }
+    fn get_rate(init: &Self::Init) -> InstanceRate {
+        *init
+    }
 }
 impl ToInstanceRate for Instanced {
     type Init = ();
-    fn get_rate(_: &Self::Init) -> InstanceRate { 1 }
+    fn get_rate(_: &Self::Init) -> InstanceRate {
+        1
+    }
 }
 impl ToInstanceRate for NonInstanced {
     type Init = ();
-    fn get_rate(_: &Self::Init) -> InstanceRate { 0 }
+    fn get_rate(_: &Self::Init) -> InstanceRate {
+        0
+    }
 }
 
 /// Vertex buffer component. Advanced per vertex.
@@ -111,11 +117,9 @@ pub struct RawConstantBuffer(Option<(Usage, ConstantBufferSlot)>);
 /// - data: `T` = value
 #[derive(Derivative)]
 #[derivative(Clone, Debug, Eq, Hash, PartialEq)]
-pub struct Global<T: ToUniform>(
-    RawGlobal,
-    #[derivative(Hash = "ignore", PartialEq = "ignore")]
-    PhantomData<T>
-);
+pub struct Global<T: ToUniform>(RawGlobal,
+                                #[derivative(Hash = "ignore", PartialEq = "ignore")]
+                                PhantomData<T>);
 
 /// Raw global (uniform) constant component. Describes a free-standing value
 /// passed into the shader, which is not enclosed in any constant buffer.
@@ -137,32 +141,33 @@ fn match_attribute(attr: &shade::AttributeVar, fmt: Format) -> bool {
         (BaseType::F32, ChannelType::Inorm) |
         (BaseType::F32, ChannelType::Srgb) |
         (BaseType::F32, ChannelType::Unorm) |
-        (BaseType::U32, ChannelType::Uint) => match (attr.container, fmt.0) {
+        (BaseType::U32, ChannelType::Uint) => {
+            match (attr.container, fmt.0) {
                 (ContainerType::Single, _) |
                 (ContainerType::Vector(1), _) |
                 (ContainerType::Vector(2), _) |
                 (ContainerType::Vector(3), _) |
                 (ContainerType::Vector(4), _) => true,
                 _ => false,
-        },
+            }
+        }
         (BaseType::F64, ChannelType::Float) |
         (BaseType::F64, ChannelType::Inorm) |
         (BaseType::F64, ChannelType::Srgb) |
-        (BaseType::F64, ChannelType::Unorm) => match (attr.container, fmt.0) {
+        (BaseType::F64, ChannelType::Unorm) => {
+            match (attr.container, fmt.0) {
                 (ContainerType::Single, _) |
                 (ContainerType::Vector(2), _) |
                 (ContainerType::Vector(3), _) |
                 (ContainerType::Vector(4), _) => true,
                 _ => false,
-        },
+            }
+        }
         _ => false,
     }
 }
 
-impl<'a,
-    T: Structure<Format>,
-    I: ToInstanceRate + 'a,
-> DataLink<'a> for VertexBufferCommon<T, I> {
+impl<'a, T: Structure<Format>, I: ToInstanceRate + 'a> DataLink<'a> for VertexBufferCommon<T, I> {
     type Init = I::Init;
     fn new() -> Self {
         VertexBufferCommon(DataLink::new(), PhantomData)
@@ -170,7 +175,9 @@ impl<'a,
     fn is_active(&self) -> bool {
         self.0.is_active()
     }
-    fn link_vertex_buffer(&mut self, index: BufferIndex, init: &Self::Init)
+    fn link_vertex_buffer(&mut self,
+                          index: BufferIndex,
+                          init: &Self::Init)
                           -> Option<pso::VertexBufferDesc> {
         use std::mem;
         (self.0).0 = Some(index);
@@ -180,11 +187,11 @@ impl<'a,
             rate: rate as InstanceRate,
         })
     }
-    fn link_input(&mut self, at: &shade::AttributeVar, _: &Self::Init) ->
-                  Option<Result<pso::AttributeDesc, Format>> {
-        T::query(&at.name).map(|el| {
-            self.0.link(at, el)
-        })
+    fn link_input(&mut self,
+                  at: &shade::AttributeVar,
+                  _: &Self::Init)
+                  -> Option<Result<pso::AttributeDesc, Format>> {
+        T::query(&at.name).map(|el| self.0.link(at, el))
     }
 }
 
@@ -200,7 +207,9 @@ impl<R: Resources, T, I> DataBind<R> for VertexBufferCommon<T, I> {
 }
 
 impl RawVertexBuffer {
-    fn link(&mut self, at: &shade::AttributeVar, el: Element<Format>)
+    fn link(&mut self,
+            at: &shade::AttributeVar,
+            el: Element<Format>)
             -> Result<pso::AttributeDesc, Format> {
         self.1 |= 1 << (at.slot as AttributeSlotSet);
         if match_attribute(at, el.format) {
@@ -219,7 +228,9 @@ impl<'a> DataLink<'a> for RawVertexBuffer {
     fn is_active(&self) -> bool {
         self.0.is_some()
     }
-    fn link_vertex_buffer(&mut self, index: BufferIndex, init: &Self::Init)
+    fn link_vertex_buffer(&mut self,
+                          index: BufferIndex,
+                          init: &Self::Init)
                           -> Option<pso::VertexBufferDesc> {
         self.0 = Some(index);
         Some(pso::VertexBufferDesc {
@@ -227,9 +238,13 @@ impl<'a> DataLink<'a> for RawVertexBuffer {
             rate: init.2,
         })
     }
-    fn link_input(&mut self, at: &shade::AttributeVar, init: &Self::Init) ->
-                  Option<Result<pso::AttributeDesc, Format>> {
-        init.0.iter().find(|x| x.0 == &at.name)
+    fn link_input(&mut self,
+                  at: &shade::AttributeVar,
+                  init: &Self::Init)
+                  -> Option<Result<pso::AttributeDesc, Format>> {
+        init.0
+            .iter()
+            .find(|x| x.0 == &at.name)
             .map(|x| self.link(at, x.1))
     }
 }
@@ -242,18 +257,19 @@ impl<R: Resources> DataBind<R> for RawVertexBuffer {
                man: &mut handle::Manager<R>,
                access: &mut AccessInfo<R>) {
         let value = Some((man.ref_buffer(data).clone(), 0));
-        for i in 0 .. MAX_VERTEX_ATTRIBUTES {
-            if (self.1 & (1<<i)) != 0 {
+        for i in 0..MAX_VERTEX_ATTRIBUTES {
+            if (self.1 & (1 << i)) != 0 {
                 out.vertex_buffers.0[i] = value;
             }
         }
-        if self.1 != 0 { access.buffer_read(data); }
+        if self.1 != 0 {
+            access.buffer_read(data);
+        }
     }
 }
 
 
-impl<'a, T: Structure<shade::ConstFormat>>
-DataLink<'a> for ConstantBuffer<T> {
+impl<'a, T: Structure<shade::ConstFormat>> DataLink<'a> for ConstantBuffer<T> {
     type Init = &'a str;
     fn new() -> Self {
         ConstantBuffer(RawConstantBuffer::new(), PhantomData)
@@ -261,18 +277,22 @@ DataLink<'a> for ConstantBuffer<T> {
     fn is_active(&self) -> bool {
         self.0.is_active()
     }
-    fn link_constant_buffer<'b>(&mut self, cb: &'b shade::ConstantBufferVar, init: &Self::Init)
-                            -> Option<Result<pso::ConstantBufferDesc, ElementError<&'b str>>> {
+    fn link_constant_buffer<'b>
+        (&mut self,
+         cb: &'b shade::ConstantBufferVar,
+         init: &Self::Init)
+         -> Option<Result<pso::ConstantBufferDesc, ElementError<&'b str>>> {
         let raw_out = self.0.link_constant_buffer(cb, init);
         if raw_out.is_some() {
             for el in cb.elements.iter() {
                 let err = match T::query(&el.name) {
-                    Some(e) if e.offset != el.location as pso::ElemOffset =>
+                    Some(e) if e.offset != el.location as pso::ElemOffset => {
                         ElementError::Offset {
                             name: el.name.as_str(),
                             shader_offset: el.location as pso::ElemOffset,
                             code_offset: e.offset,
-                        },
+                        }
+                    }
                     None => ElementError::NotFound(el.name.as_str()),
                     Some(_) => continue, //TODO: check format
                 };
@@ -284,8 +304,7 @@ DataLink<'a> for ConstantBuffer<T> {
     }
 }
 
-impl<R: Resources, T: Structure<shade::ConstFormat>>
-DataBind<R> for ConstantBuffer<T> {
+impl<R: Resources, T: Structure<shade::ConstFormat>> DataBind<R> for ConstantBuffer<T> {
     type Data = handle::Buffer<R, T>;
     fn bind_to(&self,
                out: &mut RawDataSet<R>,
@@ -304,8 +323,11 @@ impl<'a> DataLink<'a> for RawConstantBuffer {
     fn is_active(&self) -> bool {
         self.0.is_some()
     }
-    fn link_constant_buffer<'b>(&mut self, cb: &'b shade::ConstantBufferVar, init: &Self::Init)
-                            -> Option<Result<pso::ConstantBufferDesc, ElementError<&'b str>>> {
+    fn link_constant_buffer<'b>
+        (&mut self,
+         cb: &'b shade::ConstantBufferVar,
+         init: &Self::Init)
+         -> Option<Result<pso::ConstantBufferDesc, ElementError<&'b str>>> {
         if cb.name.as_str() == *init {
             self.0 = Some((cb.usage, cb.slot));
             Some(Ok(cb.usage))
@@ -338,8 +360,10 @@ impl<'a, T: ToUniform + Default> DataLink<'a> for Global<T> {
     fn is_active(&self) -> bool {
         self.0.is_active()
     }
-    fn link_global_constant(&mut self, var: &shade::ConstVar, init: &Self::Init) ->
-                            Option<Result<(), shade::CompatibilityError>> {
+    fn link_global_constant(&mut self,
+                            var: &shade::ConstVar,
+                            init: &Self::Init)
+                            -> Option<Result<(), shade::CompatibilityError>> {
         let kind = ToUniform::convert(T::default());
         self.0.link_global_constant(var, init).and(Some(var.is_compatible(&kind)))
     }
@@ -365,8 +389,10 @@ impl<'a> DataLink<'a> for RawGlobal {
     fn is_active(&self) -> bool {
         self.0.is_some()
     }
-    fn link_global_constant(&mut self, var: &shade::ConstVar, init: &Self::Init) ->
-                            Option<Result<(), shade::CompatibilityError>> {
+    fn link_global_constant(&mut self,
+                            var: &shade::ConstVar,
+                            init: &Self::Init)
+                            -> Option<Result<(), shade::CompatibilityError>> {
         if var.name.as_str() == *init {
             self.0 = Some(var.location);
             Some(Ok(()))

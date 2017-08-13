@@ -51,7 +51,6 @@ extern crate glfw;
 
 use std::rc::Rc;
 use std::cell::RefCell;
-use core::format::{Rgba8, DepthStencil, SurfaceType};
 use core::{handle, memory};
 use core::texture::{self, AaMode, Size};
 use glfw::Context;
@@ -68,7 +67,7 @@ impl<'a> core::SwapChain<device_gl::Backend> for SwapChain {
         &self.backbuffer
     }
 
-    fn acquire_frame(&mut self, sync: core::FrameSync<device_gl::Resources>) -> core::Frame {
+    fn acquire_frame(&mut self, _sync: core::FrameSync<device_gl::Resources>) -> core::Frame {
         // TODO: fence sync
         core::Frame::new(0)
     }
@@ -88,35 +87,34 @@ pub struct Surface {
 impl<'a> core::Surface<device_gl::Backend> for Surface {
     type SwapChain = SwapChain;
 
-    fn supports_queue(&self, _: &device_gl::QueueFamily) -> bool { true }
+    fn supports_queue(&self, _: &device_gl::QueueFamily) -> bool {
+        true
+    }
     fn build_swapchain<Q>(&mut self, config: core::SwapchainConfig, _: &Q) -> SwapChain
         where Q: AsRef<device_gl::CommandQueue>
     {
         use core::handle::Producer;
         let (width, height) = self.window.borrow_mut().get_framebuffer_size();
         let dim = (width as Size, height as Size, 1, AaMode::Single);
-        let color = self.manager.make_texture(
-            device_gl::NewTexture::Surface(0),
-            texture::Info {
-                levels: 1,
-                kind: texture::Kind::D2(dim.0, dim.1, dim.3),
-                format: config.color_format.0,
-                bind: memory::RENDER_TARGET | memory::TRANSFER_SRC,
-                usage: memory::Usage::Data,
-            },
-        );
+        let color = self.manager.make_texture(device_gl::NewTexture::Surface(0),
+                                              texture::Info {
+                                                  levels: 1,
+                                                  kind: texture::Kind::D2(dim.0, dim.1, dim.3),
+                                                  format: config.color_format.0,
+                                                  bind: memory::RENDER_TARGET |
+                                                        memory::TRANSFER_SRC,
+                                                  usage: memory::Usage::Data,
+                                              });
 
         let ds = config.depth_stencil_format.map(|ds_format| {
-            self.manager.make_texture(
-                device_gl::NewTexture::Surface(0),
-                texture::Info {
-                    levels: 1,
-                    kind: texture::Kind::D2(dim.0, dim.1, dim.3),
-                    format: ds_format.0,
-                    bind: memory::DEPTH_STENCIL | memory::TRANSFER_SRC,
-                    usage: memory::Usage::Data,
-                },
-            )
+            self.manager.make_texture(device_gl::NewTexture::Surface(0),
+                                      texture::Info {
+                                          levels: 1,
+                                          kind: texture::Kind::D2(dim.0, dim.1, dim.3),
+                                          format: ds_format.0,
+                                          bind: memory::DEPTH_STENCIL | memory::TRANSFER_SRC,
+                                          usage: memory::Usage::Data,
+                                      })
         });
 
         SwapChain {
@@ -139,7 +137,9 @@ impl<'a> core::WindowExt<device_gl::Backend> for Window {
 
     fn get_surface_and_adapters(&mut self) -> (Surface, Vec<device_gl::Adapter>) {
         self.0.borrow_mut().make_current();
-        let adapter = device_gl::Adapter::new(|s| self.0.borrow_mut().get_proc_address(s) as *const std::os::raw::c_void);
+        let adapter = device_gl::Adapter::new(|s| {
+            self.0.borrow_mut().get_proc_address(s) as *const std::os::raw::c_void
+        });
         let surface = Surface {
             window: self.0.clone(),
             manager: handle::Manager::new(),

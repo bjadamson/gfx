@@ -51,7 +51,7 @@ impl fmt::Display for Error {
             InvalidAccess(ref access, ref usage) => {
                 write!(f, "{}: access = {:?}, usage = {:?}", self.description(), access, usage)
             }
-            AccessOverlap => write!(f, "{}", self.description())
+            AccessOverlap => write!(f, "{}", self.description()),
         }
     }
 }
@@ -61,7 +61,7 @@ impl StdError for Error {
         use self::Error::*;
         match *self {
             InvalidAccess(..) => "The requested mapping access did not match the expected usage",
-            AccessOverlap => "The requested mapping access overlaps with another"
+            AccessOverlap => "The requested mapping access overlaps with another",
         }
     }
 }
@@ -133,11 +133,14 @@ impl<'a, R: Resources> DerefMut for Guard<'a, R> {
 
 impl<'a, R: Resources> Drop for Guard<'a, R> {
     fn drop(&mut self) {
-        unsafe { self.raw.release_access(); }
+        unsafe {
+            self.raw.release_access();
+        }
     }
 }
 
-fn take_access_checked<R>(access: memory::Access, buffer: &buffer::Raw<R>)
+fn take_access_checked<R>(access: memory::Access,
+                          buffer: &buffer::Raw<R>)
                           -> Result<Guard<R>, Error>
     where R: Resources
 {
@@ -153,9 +156,10 @@ fn take_access_checked<R>(access: memory::Access, buffer: &buffer::Raw<R>)
 }
 
 #[doc(hidden)]
-pub unsafe fn read<R, T, S>(buffer: &buffer::Raw<R>, sync: S)
-                            -> Result<Reader<R, T>, Error>
-    where R: Resources, T: Copy, S: FnOnce(&mut R::Mapping)
+pub unsafe fn read<R, T, S>(buffer: &buffer::Raw<R>, sync: S) -> Result<Reader<R, T>, Error>
+    where R: Resources,
+          T: Copy,
+          S: FnOnce(&mut R::Mapping)
 {
     let mut mapping = try!(take_access_checked(memory::READ, buffer));
     sync(&mut mapping);
@@ -167,9 +171,10 @@ pub unsafe fn read<R, T, S>(buffer: &buffer::Raw<R>, sync: S)
 }
 
 #[doc(hidden)]
-pub unsafe fn write<R, T, S>(buffer: &buffer::Raw<R>, sync: S)
-                             -> Result<Writer<R, T>, Error>
-    where R: Resources, T: Copy, S: FnOnce(&mut R::Mapping)
+pub unsafe fn write<R, T, S>(buffer: &buffer::Raw<R>, sync: S) -> Result<Writer<R, T>, Error>
+    where R: Resources,
+          T: Copy,
+          S: FnOnce(&mut R::Mapping)
 {
     let mut mapping = try!(take_access_checked(memory::WRITE, buffer));
     sync(&mut mapping);
@@ -184,13 +189,16 @@ pub unsafe fn write<R, T, S>(buffer: &buffer::Raw<R>, sync: S)
 #[derive(Debug)]
 pub struct Reader<'a, R: Resources, T: 'a + Copy> {
     slice: &'a [T],
-    #[allow(dead_code)] mapping: Guard<'a, R>,
+    #[allow(dead_code)]
+    mapping: Guard<'a, R>,
 }
 
 impl<'a, R: Resources, T: 'a + Copy> Deref for Reader<'a, R, T> {
     type Target = [T];
 
-    fn deref(&self) -> &[T] { self.slice }
+    fn deref(&self) -> &[T] {
+        self.slice
+    }
 }
 
 /// Mapping writer.
@@ -199,17 +207,22 @@ impl<'a, R: Resources, T: 'a + Copy> Deref for Reader<'a, R, T> {
 #[derive(Debug)]
 pub struct Writer<'a, R: Resources, T: 'a + Copy> {
     slice: &'a mut [T],
-    #[allow(dead_code)] mapping: Guard<'a, R>,
+    #[allow(dead_code)]
+    mapping: Guard<'a, R>,
 }
 
 impl<'a, R: Resources, T: 'a + Copy> Deref for Writer<'a, R, T> {
     type Target = [T];
 
-    fn deref(&self) -> &[T] { &*self.slice }
+    fn deref(&self) -> &[T] {
+        &*self.slice
+    }
 }
 
 impl<'a, R: Resources, T: 'a + Copy> DerefMut for Writer<'a, R, T> {
-    fn deref_mut(&mut self) -> &mut [T] { self.slice }
+    fn deref_mut(&mut self) -> &mut [T] {
+        self.slice
+    }
 }
 
 /// A service struct that can be used by backends to track the mapping status

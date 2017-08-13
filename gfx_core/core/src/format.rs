@@ -15,7 +15,7 @@
 //! Universal format specification.
 //! Applicable to textures, views, and vertex buffers.
 
-//TODO:
+// TODO:
 //  DXT 1-5, BC7
 //  ETC2_RGB, // Use the EXT2 algorithm on 3 components.
 //  ETC2_SRGB, // Use the EXT2 algorithm on 4 components (RGBA) in the sRGB color space.
@@ -62,10 +62,10 @@ impl_channel_type! {
 
 macro_rules! impl_formats {
     { $($name:ident : $container:ident < $($channel:ident),* > = $data_type:ty {$alpha_bits:expr} [ $($imp_trait:ident),* ] ,)* } => {
-        /// Type of the allocated texture surface. It is supposed to only
-        /// carry information about the number of bits per each channel.
-        /// The actual types are up to the views to decide and interpret.
-        /// The actual components are up to the swizzle to define.
+/// Type of the allocated texture surface. It is supposed to only
+/// carry information about the number of bits per each channel.
+/// The actual types are up to the views to decide and interpret.
+/// The actual components are up to the swizzle to define.
         #[repr(u8)]
         #[allow(missing_docs, non_camel_case_types)]
         #[derive(Clone, Copy, Debug, Eq, Hash, Ord, PartialEq, PartialOrd)]
@@ -74,14 +74,14 @@ macro_rules! impl_formats {
             $( $name, )*
         }
         impl SurfaceType {
-            /// Return the total number of bits for this format.
+/// Return the total number of bits for this format.
             pub fn get_total_bits(&self) -> u8 {
                 use std::mem::size_of;
                 match *self {
                     $( SurfaceType::$name => (size_of::<$data_type>() * 8) as u8, )*
                 }
             }
-            /// Return the number of bits allocated for alpha and stencil.
+/// Return the number of bits allocated for alpha and stencil.
             pub fn get_alpha_stencil_bits(&self) -> u8  {
                 match *self {
                     $( SurfaceType::$name => $alpha_bits, )*
@@ -180,7 +180,10 @@ pub struct Swizzle(pub ChannelSource, pub ChannelSource, pub ChannelSource, pub 
 impl Swizzle {
     /// Create a new swizzle where each channel is unmapped.
     pub fn new() -> Swizzle {
-        Swizzle(ChannelSource::X, ChannelSource::Y, ChannelSource::Z, ChannelSource::W)
+        Swizzle(ChannelSource::X,
+                ChannelSource::Y,
+                ChannelSource::Z,
+                ChannelSource::W)
     }
 }
 
@@ -232,9 +235,8 @@ pub trait Formatted {
     type View;
     /// Return the run-time value of the type.
     fn get_format() -> Format {
-        Format(
-            Self::Surface::get_surface_type(),
-            Self::Channel::get_channel_type())
+        Format(Self::Surface::get_surface_type(),
+               Self::Channel::get_channel_type())
     }
 }
 /// Ability to be used for vertex buffers.
@@ -252,39 +254,43 @@ pub trait RenderFormat: Formatted {}
 /// Ability to be used for blended render targets.
 pub trait BlendFormat: RenderFormat {}
 
-impl<F> BufferFormat for F where
-    F: Formatted,
-    F::Surface: BufferSurface,
-    F::Channel: ChannelTyped,
-{}
-impl<F> DepthFormat for F where
-    F: Formatted,
-    F::Surface: DepthSurface,
-    F::Channel: RenderChannel,
-{}
-impl<F> StencilFormat for F where
-    F: Formatted,
-    F::Surface: StencilSurface,
-    F::Channel: RenderChannel,
-{}
-impl<F> DepthStencilFormat for F where
-    F: DepthFormat + StencilFormat
-{}
-impl<F> TextureFormat for F where
-    F: Formatted,
-    F::Surface: TextureSurface,
-    F::Channel: TextureChannel,
-{}
-impl<F> RenderFormat for F where
-    F: Formatted,
-    F::Surface: RenderSurface,
-    F::Channel: RenderChannel,
-{}
-impl<F> BlendFormat for F where
-    F: Formatted,
-    F::Surface: RenderSurface,
-    F::Channel: BlendChannel,
-{}
+impl<F> BufferFormat for F
+    where F: Formatted,
+          F::Surface: BufferSurface,
+          F::Channel: ChannelTyped
+{
+}
+impl<F> DepthFormat for F
+    where F: Formatted,
+          F::Surface: DepthSurface,
+          F::Channel: RenderChannel
+{
+}
+impl<F> StencilFormat for F
+    where F: Formatted,
+          F::Surface: StencilSurface,
+          F::Channel: RenderChannel
+{
+}
+impl<F> DepthStencilFormat for F where F: DepthFormat + StencilFormat {}
+impl<F> TextureFormat for F
+    where F: Formatted,
+          F::Surface: TextureSurface,
+          F::Channel: TextureChannel
+{
+}
+impl<F> RenderFormat for F
+    where F: Formatted,
+          F::Surface: RenderSurface,
+          F::Channel: RenderChannel
+{
+}
+impl<F> BlendFormat for F
+    where F: Formatted,
+          F::Surface: RenderSurface,
+          F::Channel: BlendChannel
+{
+}
 
 macro_rules! alias {
     { $( $name:ident = $ty:ty, )* } => {

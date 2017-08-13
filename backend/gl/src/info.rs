@@ -15,7 +15,7 @@
 use std::collections::HashSet;
 use std::{ffi, fmt, mem, str};
 use gl;
-use core::{Capabilities, IndexCount, VertexCount};
+use core::Capabilities;
 
 /// A version number for a specific component of an OpenGL implementation
 #[derive(Copy, Clone, Eq, Ord, PartialEq, PartialOrd)]
@@ -29,8 +29,11 @@ pub struct Version {
 
 impl Version {
     /// Create a new OpenGL version number
-    pub fn new(major: u32, minor: u32, revision: Option<u32>,
-               vendor_info: &'static str) -> Version {
+    pub fn new(major: u32,
+               minor: u32,
+               revision: Option<u32>,
+               vendor_info: &'static str)
+               -> Version {
         Version {
             is_embedded: false,
             major: major,
@@ -69,13 +72,13 @@ impl Version {
         let es_sig = " ES ";
         let is_es = match src.rfind(es_sig) {
             Some(pos) => {
-                src = &src[pos + es_sig.len() ..];
+                src = &src[pos + es_sig.len()..];
                 true
-            },
+            }
             None => false,
         };
         let (version, vendor_info) = match src.find(' ') {
-            Some(i) => (&src[..i], &src[i+1..]),
+            Some(i) => (&src[..i], &src[i + 1..]),
             None => (src, ""),
         };
 
@@ -87,13 +90,15 @@ impl Version {
         let revision = it.next().and_then(|s| s.parse().ok());
 
         match (major, minor, revision) {
-            (Some(major), Some(minor), revision) => Ok(Version {
-                is_embedded: is_es,
-                major: major,
-                minor: minor,
-                revision: revision,
-                vendor_info: vendor_info,
-            }),
+            (Some(major), Some(minor), revision) => {
+                Ok(Version {
+                    is_embedded: is_es,
+                    major: major,
+                    minor: minor,
+                    revision: revision,
+                    vendor_info: vendor_info,
+                })
+            }
             (_, _, _) => Err(src),
         }
     }
@@ -102,14 +107,12 @@ impl Version {
 impl fmt::Debug for Version {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         match (self.major, self.minor, self.revision, self.vendor_info) {
-            (major, minor, Some(revision), "") =>
-                write!(f, "{}.{}.{}", major, minor, revision),
-            (major, minor, None, "") =>
-                write!(f, "{}.{}", major, minor),
-            (major, minor, Some(revision), vendor_info) =>
-                write!(f, "{}.{}.{}, {}", major, minor, revision, vendor_info),
-            (major, minor, None, vendor_info) =>
-                write!(f, "{}.{}, {}", major, minor, vendor_info),
+            (major, minor, Some(revision), "") => write!(f, "{}.{}.{}", major, minor, revision),
+            (major, minor, None, "") => write!(f, "{}.{}", major, minor),
+            (major, minor, Some(revision), vendor_info) => {
+                write!(f, "{}.{}.{}, {}", major, minor, revision, vendor_info)
+            }
+            (major, minor, None, vendor_info) => write!(f, "{}.{}, {}", major, minor, vendor_info),
         }
     }
 }
@@ -189,7 +192,7 @@ pub struct Info {
 
 #[derive(Copy, Clone)]
 enum Requirement {
-    Core(u32,u32),
+    Core(u32, u32),
     Es(u32, u32),
     Ext(&'static str),
 }
@@ -198,11 +201,14 @@ impl Info {
     fn get(gl: &gl::Gl) -> Info {
         let platform_name = PlatformName::get(gl);
         let version = Version::parse(get_string(gl, gl::VERSION)).unwrap();
-        let shading_language = Version::parse(get_string(gl, gl::SHADING_LANGUAGE_VERSION)).unwrap();
+        let shading_language = Version::parse(get_string(gl, gl::SHADING_LANGUAGE_VERSION))
+            .unwrap();
         let extensions = if version >= Version::new(3, 0, None, "") {
             let num_exts = get_usize(gl, gl::NUM_EXTENSIONS) as gl::types::GLuint;
             (0..num_exts)
-                .map(|i| unsafe { c_str_as_static_str(gl.GetStringi(gl::EXTENSIONS, i) as *const i8) })
+                .map(|i| unsafe {
+                    c_str_as_static_str(gl.GetStringi(gl::EXTENSIONS, i) as *const i8)
+                })
                 .collect()
         } else {
             // Fallback
@@ -229,7 +235,11 @@ impl Info {
         self.extensions.contains(&s)
     }
 
-    pub fn is_version_or_extension_supported(&self, major: u32, minor: u32, ext: &'static str) -> bool {
+    pub fn is_version_or_extension_supported(&self,
+                                             major: u32,
+                                             minor: u32,
+                                             ext: &'static str)
+                                             -> bool {
         self.is_version_supported(major, minor) || self.is_extension_supported(ext)
     }
 
@@ -254,60 +264,50 @@ impl Info {
 pub fn get(gl: &gl::Gl) -> (Info, Capabilities, PrivateCaps) {
     use self::Requirement::*;
     let info = Info::get(gl);
-    let tessellation_supported =           info.is_supported(&[Core(4,0),
-                                                               Ext("GL_ARB_tessellation_shader")]);
+    let tessellation_supported =
+        info.is_supported(&[Core(4, 0), Ext("GL_ARB_tessellation_shader")]);
     let caps = Capabilities {
         max_texture_size: get_usize(gl, gl::MAX_TEXTURE_SIZE),
-        max_patch_size: if tessellation_supported { get_usize(gl, gl::MAX_PATCH_VERTICES) as u8 } else {0},
+        max_patch_size: if tessellation_supported {
+            get_usize(gl, gl::MAX_PATCH_VERTICES) as u8
+        } else {
+            0
+        },
 
-        instance_base_supported:           info.is_supported(&[Core(4,2),
-                                                               Ext ("GL_ARB_base_instance")]),
-        instance_call_supported:           info.is_supported(&[Core(3,1),
-                                                               Es  (3,0),
-                                                               Ext ("GL_ARB_draw_instanced")]),
-        instance_rate_supported:           info.is_supported(&[Core(3,3),
-                                                               Es  (3,0),
-                                                               Ext ("GL_ARB_instanced_arrays")]),
-        vertex_base_supported:             info.is_supported(&[Core(3,2),
-                                                               Es  (3,2),
-                                                               Ext ("GL_ARB_draw_elements_base_vertex")]),
-        srgb_color_supported:              info.is_supported(&[Core(3,2),
-                                                               Ext ("GL_ARB_framebuffer_sRGB")]),
-        constant_buffer_supported:         info.is_supported(&[Core(3,1),
-                                                               Es  (3,0),
-                                                               Ext ("GL_ARB_uniform_buffer_object")]),
-        unordered_access_view_supported:   info.is_supported(&[Core(4,0)]), //TODO: extension
-        separate_blending_slots_supported: info.is_supported(&[Core(4,0),
-                                                               Es  (3,0),
-                                                               Ext ("GL_ARB_draw_buffers_blend")]),
-        copy_buffer_supported:             info.is_supported(&[Core(3,1),
-                                                               Es  (3,0),
-                                                               Ext ("GL_ARB_copy_buffer"),
-                                                               Ext ("GL_NV_copy_buffer")]),
+        instance_base_supported: info.is_supported(&[Core(4, 2), Ext("GL_ARB_base_instance")]),
+        instance_call_supported:
+            info.is_supported(&[Core(3, 1), Es(3, 0), Ext("GL_ARB_draw_instanced")]),
+        instance_rate_supported:
+            info.is_supported(&[Core(3, 3), Es(3, 0), Ext("GL_ARB_instanced_arrays")]),
+        vertex_base_supported:
+            info.is_supported(&[Core(3, 2), Es(3, 2), Ext("GL_ARB_draw_elements_base_vertex")]),
+        srgb_color_supported: info.is_supported(&[Core(3, 2), Ext("GL_ARB_framebuffer_sRGB")]),
+        constant_buffer_supported:
+            info.is_supported(&[Core(3, 1), Es(3, 0), Ext("GL_ARB_uniform_buffer_object")]),
+        unordered_access_view_supported: info.is_supported(&[Core(4, 0)]), // TODO: extension
+        separate_blending_slots_supported:
+            info.is_supported(&[Core(4, 0), Es(3, 0), Ext("GL_ARB_draw_buffers_blend")]),
+        copy_buffer_supported: info.is_supported(&[Core(3, 1),
+                                                   Es(3, 0),
+                                                   Ext("GL_ARB_copy_buffer"),
+                                                   Ext("GL_NV_copy_buffer")]),
     };
     let private = PrivateCaps {
-        array_buffer_supported:            info.is_supported(&[Core(3,0),
-                                                               Es  (3,0),
-                                                               Ext ("GL_ARB_vertex_array_object")]),
-        frame_buffer_supported:            info.is_supported(&[Core(3,0),
-                                                               Es  (2,0),
-                                                               Ext ("GL_ARB_framebuffer_object")]),
-        immutable_storage_supported:       info.is_supported(&[Core(3,2),
-                                                               Ext ("GL_ARB_texture_storage")]),
-        sampler_objects_supported:         info.is_supported(&[Core(3,3),
-                                                               Es  (3,0),
-                                                               Ext ("GL_ARB_sampler_objects")]),
-        program_interface_supported:       info.is_supported(&[Core(4,3),
-                                                               Ext ("GL_ARB_program_interface_query")]),
-        buffer_storage_supported:          info.is_supported(&[Core(4,4),
-                                                               Ext ("GL_ARB_buffer_storage")]),
-        clear_buffer_supported:            info.is_supported(&[Core(3,0),
-                                                               Es  (3,0)]),
-        frag_data_location_supported:      !info.version.is_embedded,
-        sampler_lod_bias_supported:        !info.version.is_embedded,
-        sync_supported:                    info.is_supported(&[Core(3,2),
-                                                               Es  (3,0),
-                                                               Ext ("GL_ARB_sync")]),
+        array_buffer_supported:
+            info.is_supported(&[Core(3, 0), Es(3, 0), Ext("GL_ARB_vertex_array_object")]),
+        frame_buffer_supported:
+            info.is_supported(&[Core(3, 0), Es(2, 0), Ext("GL_ARB_framebuffer_object")]),
+        immutable_storage_supported:
+            info.is_supported(&[Core(3, 2), Ext("GL_ARB_texture_storage")]),
+        sampler_objects_supported:
+            info.is_supported(&[Core(3, 3), Es(3, 0), Ext("GL_ARB_sampler_objects")]),
+        program_interface_supported:
+            info.is_supported(&[Core(4, 3), Ext("GL_ARB_program_interface_query")]),
+        buffer_storage_supported: info.is_supported(&[Core(4, 4), Ext("GL_ARB_buffer_storage")]),
+        clear_buffer_supported: info.is_supported(&[Core(3, 0), Es(3, 0)]),
+        frag_data_location_supported: !info.version.is_embedded,
+        sampler_lod_bias_supported: !info.version.is_embedded,
+        sync_supported: info.is_supported(&[Core(3, 2), Es(3, 0), Ext("GL_ARB_sync")]),
     };
     (info, caps, private)
 }
@@ -324,13 +324,21 @@ mod tests {
         assert_eq!(Version::parse("1. h3l1o. W0rld"), Err("1. h3l1o. W0rld"));
         assert_eq!(Version::parse("1.2.3"), Ok(Version::new(1, 2, Some(3), "")));
         assert_eq!(Version::parse("1.2"), Ok(Version::new(1, 2, None, "")));
-        assert_eq!(Version::parse("1.2 h3l1o. W0rld"), Ok(Version::new(1, 2, None, "h3l1o. W0rld")));
-        assert_eq!(Version::parse("1.2.h3l1o. W0rld"), Ok(Version::new(1, 2, None, "W0rld")));
-        assert_eq!(Version::parse("1.2. h3l1o. W0rld"), Ok(Version::new(1, 2, None, "h3l1o. W0rld")));
-        assert_eq!(Version::parse("1.2.3.h3l1o. W0rld"), Ok(Version::new(1, 2, Some(3), "W0rld")));
-        assert_eq!(Version::parse("1.2.3 h3l1o. W0rld"), Ok(Version::new(1, 2, Some(3), "h3l1o. W0rld")));
-        assert_eq!(Version::parse("OpenGL ES 3.1"), Ok(Version::new_embedded(3, 1, "")));
-        assert_eq!(Version::parse("OpenGL ES 2.0 Google Nexus"), Ok(Version::new_embedded(2, 0, "Google Nexus")));
-        assert_eq!(Version::parse("GLSL ES 1.1"), Ok(Version::new_embedded(1, 1, "")));
+        assert_eq!(Version::parse("1.2 h3l1o. W0rld"),
+                   Ok(Version::new(1, 2, None, "h3l1o. W0rld")));
+        assert_eq!(Version::parse("1.2.h3l1o. W0rld"),
+                   Ok(Version::new(1, 2, None, "W0rld")));
+        assert_eq!(Version::parse("1.2. h3l1o. W0rld"),
+                   Ok(Version::new(1, 2, None, "h3l1o. W0rld")));
+        assert_eq!(Version::parse("1.2.3.h3l1o. W0rld"),
+                   Ok(Version::new(1, 2, Some(3), "W0rld")));
+        assert_eq!(Version::parse("1.2.3 h3l1o. W0rld"),
+                   Ok(Version::new(1, 2, Some(3), "h3l1o. W0rld")));
+        assert_eq!(Version::parse("OpenGL ES 3.1"),
+                   Ok(Version::new_embedded(3, 1, "")));
+        assert_eq!(Version::parse("OpenGL ES 2.0 Google Nexus"),
+                   Ok(Version::new_embedded(2, 0, "Google Nexus")));
+        assert_eq!(Version::parse("GLSL ES 1.1"),
+                   Ok(Version::new_embedded(1, 1, "")));
     }
 }

@@ -43,10 +43,10 @@ macro_rules! gfx_impl_struct_meta {
             fn query(name: &str) -> ::std::option::Option<$crate::pso::buffer::Element<$runtime_format>> {
                 use std::mem::{size_of, transmute};
                 use $crate::pso::buffer::{Element, ElemOffset};
-                // using "1" here as a simple non-zero pointer addres
+// using "1" here as a simple non-zero pointer addres
                 let tmp: &$root = unsafe{ transmute(1usize) };
                 let base = tmp as *const _ as usize;
-                //HACK: special treatment of array queries
+// HACK: special treatment of array queries
                 let (sub_name, big_offset) = {
                     let mut split = name.split(|c| c == '[' || c == ']');
                     let _ = split.next().unwrap();

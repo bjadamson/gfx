@@ -59,8 +59,7 @@ pub trait Adapter<B: Backend>: Sized {
     ///
     /// ```
     fn open_with<F>(&self, mut f: F) -> Gpu<B>
-    where
-        F: FnMut(&B::QueueFamily, QueueType) -> (u32, QueueType),
+        where F: FnMut(&B::QueueFamily, QueueType) -> (u32, QueueType)
     {
         let queue_desc = self.get_queue_families()
             .iter()

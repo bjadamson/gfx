@@ -22,25 +22,28 @@ use core::format::{ChannelType, Format};
 use core::handle::{self, Producer};
 use core::target::{Layer, Level};
 
-use command::{COLOR_DEFAULT};
+use command::COLOR_DEFAULT;
 use {Info, Resources as R, Share, OutputMerger};
-use {Buffer, BufferElement, FatSampler, NewTexture,
-     PipelineState, ResourceView, TargetView, Fence};
+use {Buffer, BufferElement, FatSampler, NewTexture, PipelineState, ResourceView, TargetView, Fence};
 
 
 pub fn role_to_target(role: buffer::Role) -> gl::types::GLenum {
     match role {
-        buffer::Role::Vertex   => gl::ARRAY_BUFFER,
-        buffer::Role::Index    => gl::ELEMENT_ARRAY_BUFFER,
+        buffer::Role::Vertex => gl::ARRAY_BUFFER,
+        buffer::Role::Index => gl::ELEMENT_ARRAY_BUFFER,
         buffer::Role::Constant => gl::UNIFORM_BUFFER,
-        buffer::Role::Staging  => gl::ARRAY_BUFFER,
+        buffer::Role::Staging => gl::ARRAY_BUFFER,
     }
 }
 
 fn access_to_map_bits(access: memory::Access) -> gl::types::GLenum {
     let mut r = 0;
-    if access.contains(memory::READ) { r |= gl::MAP_READ_BIT; }
-    if access.contains(memory::WRITE) { r |= gl::MAP_WRITE_BIT; }
+    if access.contains(memory::READ) {
+        r |= gl::MAP_READ_BIT;
+    }
+    if access.contains(memory::WRITE) {
+        r |= gl::MAP_WRITE_BIT;
+    }
     r
 }
 
@@ -53,16 +56,19 @@ fn access_to_gl(access: memory::Access) -> gl::types::GLenum {
     }
 }
 
-pub fn update_sub_buffer(gl: &gl::Gl, buffer: Buffer, address: *const u8,
-                         size: usize, offset: usize, role: buffer::Role) {
+pub fn update_sub_buffer(gl: &gl::Gl,
+                         buffer: Buffer,
+                         address: *const u8,
+                         size: usize,
+                         offset: usize,
+                         role: buffer::Role) {
     let target = role_to_target(role);
     unsafe {
         gl.BindBuffer(target, buffer);
         gl.BufferSubData(target,
-            offset as gl::types::GLintptr,
-            size as gl::types::GLsizeiptr,
-            address as *const gl::types::GLvoid
-        );
+                         offset as gl::types::GLintptr,
+                         size as gl::types::GLsizeiptr,
+                         address as *const gl::types::GLvoid);
     }
 }
 
@@ -96,7 +102,9 @@ impl Device {
     fn create_buffer_internal(&mut self) -> Buffer {
         let gl = &self.share.context;
         let mut name = 0 as Buffer;
-        unsafe { gl.GenBuffers(1, &mut name); }
+        unsafe {
+            gl.GenBuffers(1, &mut name);
+        }
         info!("\tCreated buffer {}", name);
         name
     }
@@ -104,7 +112,8 @@ impl Device {
     fn init_buffer(&mut self,
                    buffer: Buffer,
                    info: &buffer::Info,
-                   data_opt: Option<&[u8]>) -> Option<MappingGate> {
+                   data_opt: Option<&[u8]>)
+                   -> Option<MappingGate> {
         use core::memory::Usage::*;
 
         let gl = &self.share.context;
@@ -133,14 +142,9 @@ impl Device {
             };
             unsafe {
                 gl.BindBuffer(target, buffer);
-                gl.BufferStorage(target,
-                    size,
-                    data_ptr,
-                    usage
-                );
+                gl.BufferStorage(target, size, data_ptr, usage);
             }
-        }
-        else {
+        } else {
             let usage = match info.usage {
                 Data => gl::STATIC_DRAW,
                 Dynamic => gl::DYNAMIC_DRAW,
@@ -149,11 +153,7 @@ impl Device {
             };
             unsafe {
                 gl.BindBuffer(target, buffer);
-                gl.BufferData(target,
-                    info.size as gl::types::GLsizeiptr,
-                    data_ptr,
-                    usage
-                );
+                gl.BufferData(target, info.size as gl::types::GLsizeiptr, data_ptr, usage);
             }
         }
         if let Err(err) = self.share.check() {
@@ -168,8 +168,7 @@ impl Device {
 
         mapping_access.map(|access| {
             let (kind, ptr) = if self.share.private_caps.buffer_storage_supported {
-                let mut gl_access = access_to_map_bits(access) |
-                                    gl::MAP_PERSISTENT_BIT;
+                let mut gl_access = access_to_map_bits(access) | gl::MAP_PERSISTENT_BIT;
                 if access.contains(memory::WRITE) {
                     gl_access |= gl::MAP_FLUSH_EXPLICIT_BIT;
                 }
@@ -184,7 +183,9 @@ impl Device {
             };
             if let Err(err) = self.share.check() {
                 panic!("Error {:?} mapping buffer: {:?}, with access: {:?}",
-                       err, info, access)
+                       err,
+                       info,
+                       access)
             }
 
             MappingGate {
@@ -194,8 +195,10 @@ impl Device {
         })
     }
 
-    fn create_program_raw(&mut self, shader_set: &c::ShaderSet<R>)
-                          -> Result<(gl::types::GLuint, c::shade::ProgramInfo), c::shade::CreateProgramError> {
+    fn create_program_raw
+        (&mut self,
+         shader_set: &c::ShaderSet<R>)
+         -> Result<(gl::types::GLuint, c::shade::ProgramInfo), c::shade::CreateProgramError> {
         use shade::create_program;
         let frame_handles = &mut self.frame_handles;
         let mut shaders = [0; 5];
@@ -205,30 +208,36 @@ impl Device {
                 shaders[0] = *vs.reference(frame_handles);
                 shaders[1] = *ps.reference(frame_handles);
                 &shaders[..2]
-            },
+            }
             &c::ShaderSet::Geometry(ref vs, ref gs, ref ps) => {
                 shaders[0] = *vs.reference(frame_handles);
                 shaders[1] = *gs.reference(frame_handles);
                 shaders[2] = *ps.reference(frame_handles);
                 &shaders[..3]
-            },
+            }
             &c::ShaderSet::Tessellated(ref vs, ref hs, ref ds, ref ps) => {
                 shaders[0] = *vs.reference(frame_handles);
                 shaders[1] = *hs.reference(frame_handles);
                 shaders[2] = *ds.reference(frame_handles);
                 shaders[3] = *ps.reference(frame_handles);
                 &shaders[..4]
-            },
+            }
         };
-        let result = create_program(&self.share.context, &self.share.capabilities,
-                                    &self.share.private_caps, shader_slice, usage);
+        let result = create_program(&self.share.context,
+                                    &self.share.capabilities,
+                                    &self.share.private_caps,
+                                    shader_slice,
+                                    usage);
         if let Err(err) = self.share.check() {
             panic!("Error {:?} creating program: {:?}", err, shader_set)
         }
         result
     }
 
-    fn view_texture_as_target(&mut self, htex: &handle::RawTexture<R>, level: Level, layer: Option<Layer>)
+    fn view_texture_as_target(&mut self,
+                              htex: &handle::RawTexture<R>,
+                              level: Level,
+                              layer: Option<Layer>)
                               -> Result<TargetView, d::TargetViewError> {
         match (self.frame_handles.ref_texture(htex), layer) {
             (&NewTexture::Surface(_), Some(_)) => Err(d::TargetViewError::Unsupported),
@@ -278,8 +287,7 @@ pub fn temporary_ensure_mapped(pointer: &mut *mut ::std::os::raw::c_void,
     if pointer.is_null() {
         unsafe {
             gl.BindBuffer(target, buffer);
-            *pointer = gl.MapBuffer(target, access_to_gl(access))
-                as *mut ::std::os::raw::c_void;
+            *pointer = gl.MapBuffer(target, access_to_gl(access)) as *mut ::std::os::raw::c_void;
         }
     }
 }
@@ -303,8 +311,11 @@ impl d::Device<R> for Device {
         &self.share.capabilities
     }
 
-    fn create_buffer_raw(&mut self, info: buffer::Info) -> Result<handle::RawBuffer<R>, buffer::CreationError> {
-        if !self.share.capabilities.constant_buffer_supported && info.role == buffer::Role::Constant {
+    fn create_buffer_raw(&mut self,
+                         info: buffer::Info)
+                         -> Result<handle::RawBuffer<R>, buffer::CreationError> {
+        if !self.share.capabilities.constant_buffer_supported &&
+           info.role == buffer::Role::Constant {
             error!("Constant buffers are not supported by this GL version");
             return Err(buffer::CreationError::Other);
         }
@@ -313,8 +324,12 @@ impl d::Device<R> for Device {
         Ok(self.share.handles.borrow_mut().make_buffer(name, info, mapping))
     }
 
-    fn create_buffer_immutable_raw(&mut self, data: &[u8], stride: usize, role: buffer::Role, bind: Bind)
-                               -> Result<handle::RawBuffer<R>, buffer::CreationError> {
+    fn create_buffer_immutable_raw(&mut self,
+                                   data: &[u8],
+                                   stride: usize,
+                                   role: buffer::Role,
+                                   bind: Bind)
+                                   -> Result<handle::RawBuffer<R>, buffer::CreationError> {
         let name = self.create_buffer_internal();
         let info = buffer::Info {
             role: role,
@@ -327,42 +342,50 @@ impl d::Device<R> for Device {
         Ok(self.share.handles.borrow_mut().make_buffer(name, info, mapping))
     }
 
-    fn create_shader(&mut self, stage: c::shade::Stage, code: &[u8])
+    fn create_shader(&mut self,
+                     stage: c::shade::Stage,
+                     code: &[u8])
                      -> Result<handle::Shader<R>, c::shade::CreateShaderError> {
         ::shade::create_shader(&self.share.context, stage, code)
-                .map(|sh| self.share.handles.borrow_mut().make_shader(sh))
+            .map(|sh| self.share.handles.borrow_mut().make_shader(sh))
     }
 
-    fn create_program(&mut self, shader_set: &c::ShaderSet<R>)
+    fn create_program(&mut self,
+                      shader_set: &c::ShaderSet<R>)
                       -> Result<handle::Program<R>, c::shade::CreateProgramError> {
         self.create_program_raw(shader_set)
             .map(|(name, info)| self.share.handles.borrow_mut().make_program(name, info))
     }
 
-    fn create_pipeline_state_raw(&mut self, program: &handle::Program<R>, desc: &c::pso::Descriptor)
+    fn create_pipeline_state_raw(&mut self,
+                                 program: &handle::Program<R>,
+                                 desc: &c::pso::Descriptor)
                                  -> Result<handle::RawPipelineState<R>, c::pso::CreationError> {
         use core::state as s;
         let caps = &self.share.capabilities;
         match desc.primitive {
-            c::Primitive::PatchList(num) if num == 0 || num > caps.max_patch_size =>
-                return Err(c::pso::CreationError),
-            _ => ()
+            c::Primitive::PatchList(num) if num == 0 || num > caps.max_patch_size => {
+                return Err(c::pso::CreationError)
+            }
+            _ => (),
         }
         let mut output = OutputMerger {
             draw_mask: 0,
             stencil: match desc.depth_stencil {
-                Some((_, t)) if t.front.is_some() || t.back.is_some() => Some(s::Stencil {
-                    front: t.front.unwrap_or_default(),
-                    back: t.back.unwrap_or_default(),
-                }),
+                Some((_, t)) if t.front.is_some() || t.back.is_some() => {
+                    Some(s::Stencil {
+                        front: t.front.unwrap_or_default(),
+                        back: t.back.unwrap_or_default(),
+                    })
+                }
                 _ => None,
             },
             depth: desc.depth_stencil.and_then(|(_, t)| t.depth),
             colors: [COLOR_DEFAULT; c::MAX_COLOR_TARGETS],
         };
-        for i in 0 .. c::MAX_COLOR_TARGETS {
+        for i in 0..c::MAX_COLOR_TARGETS {
             if let Some((_, ref bi)) = desc.color_targets[i] {
-                output.draw_mask |= 1<<i;
+                output.draw_mask |= 1 << i;
                 output.colors[i].mask = bi.mask;
                 if bi.color.is_some() || bi.alpha.is_some() {
                     output.colors[i].blend = Some(s::Blend {
@@ -373,10 +396,12 @@ impl d::Device<R> for Device {
             }
         }
         let mut inputs = [None; c::MAX_VERTEX_ATTRIBUTES];
-        for i in 0 .. c::MAX_VERTEX_ATTRIBUTES {
-            inputs[i] = desc.attributes[i].map(|at| BufferElement {
-                desc: desc.vertex_buffers[at.0 as usize].unwrap(),
-                elem: at.1,
+        for i in 0..c::MAX_VERTEX_ATTRIBUTES {
+            inputs[i] = desc.attributes[i].map(|at| {
+                BufferElement {
+                    desc: desc.vertex_buffers[at.0 as usize].unwrap(),
+                    elem: at.1,
+                }
             });
         }
         let pso = PipelineState {
@@ -390,12 +415,15 @@ impl d::Device<R> for Device {
         Ok(self.share.handles.borrow_mut().make_pso(pso, program))
     }
 
-    fn create_texture_raw(&mut self, desc: t::Info, hint: Option<ChannelType>, data_opt: Option<&[&[u8]]>)
+    fn create_texture_raw(&mut self,
+                          desc: t::Info,
+                          hint: Option<ChannelType>,
+                          data_opt: Option<&[&[u8]]>)
                           -> Result<handle::RawTexture<R>, t::CreationError> {
         use core::texture::CreationError;
         let caps = &self.share.private_caps;
         if desc.levels == 0 {
-            return Err(CreationError::Size(0))
+            return Err(CreationError::Size(0));
         }
         let dim = desc.kind.get_dimensions();
         let max_size = self.share.capabilities.max_texture_size;
@@ -407,7 +435,8 @@ impl d::Device<R> for Device {
         }
         let cty = hint.unwrap_or(ChannelType::Uint); //careful here
         let gl = &self.share.context;
-        let object = if desc.bind.intersects(SHADER_RESOURCE | UNORDERED_ACCESS) || data_opt.is_some() {
+        let object = if desc.bind.intersects(SHADER_RESOURCE | UNORDERED_ACCESS) ||
+                        data_opt.is_some() {
             let name = if caps.immutable_storage_supported {
                 try!(tex::make_with_storage(gl, &desc, cty))
             } else {
@@ -417,23 +446,28 @@ impl d::Device<R> for Device {
                 try!(tex::init_texture_data(gl, name, desc, cty, data));
             }
             NewTexture::Texture(name)
-        }else {
+        } else {
             let name = try!(tex::make_surface(gl, &desc, cty));
             NewTexture::Surface(name)
         };
         if let Err(err) = self.share.check() {
-            panic!("Error {:?} creating texture: {:?}, hint: {:?}", err, desc, hint)
+            panic!("Error {:?} creating texture: {:?}, hint: {:?}",
+                   err,
+                   desc,
+                   hint)
         }
         Ok(self.share.handles.borrow_mut().make_texture(object, desc))
     }
 
-    fn view_buffer_as_shader_resource_raw(&mut self, hbuf: &handle::RawBuffer<R>, format: Format)
-                                      -> Result<handle::RawShaderResourceView<R>, d::ResourceViewError> {
+    fn view_buffer_as_shader_resource_raw
+        (&mut self,
+         hbuf: &handle::RawBuffer<R>,
+         format: Format)
+         -> Result<handle::RawShaderResourceView<R>, d::ResourceViewError> {
         let gl = &self.share.context;
         let mut name = 0 as gl::types::GLuint;
         let buf_name = *self.frame_handles.ref_buffer(hbuf);
-        let format = tex::format_to_glfull(format)
-            .map_err(|_| d::ResourceViewError::Unsupported)?;
+        let format = tex::format_to_glfull(format).map_err(|_| d::ResourceViewError::Unsupported)?;
         unsafe {
             gl.GenTextures(1, &mut name);
             gl.BindTexture(gl::TEXTURE_BUFFER, name);
@@ -446,30 +480,40 @@ impl d::Device<R> for Device {
         Ok(self.share.handles.borrow_mut().make_buffer_srv(view, hbuf))
     }
 
-    fn view_buffer_as_unordered_access_raw(&mut self, _hbuf: &handle::RawBuffer<R>)
-                                       -> Result<handle::RawUnorderedAccessView<R>, d::ResourceViewError> {
+    fn view_buffer_as_unordered_access_raw
+        (&mut self,
+         _hbuf: &handle::RawBuffer<R>)
+         -> Result<handle::RawUnorderedAccessView<R>, d::ResourceViewError> {
         Err(d::ResourceViewError::Unsupported) //TODO
     }
 
-    fn view_texture_as_shader_resource_raw(&mut self, htex: &handle::RawTexture<R>, _desc: t::ResourceDesc)
-                                       -> Result<handle::RawShaderResourceView<R>, d::ResourceViewError> {
+    fn view_texture_as_shader_resource_raw
+        (&mut self,
+         htex: &handle::RawTexture<R>,
+         _desc: t::ResourceDesc)
+         -> Result<handle::RawShaderResourceView<R>, d::ResourceViewError> {
         match self.frame_handles.ref_texture(htex) {
             &NewTexture::Surface(_) => Err(d::ResourceViewError::NoBindFlag),
             &NewTexture::Texture(t) => {
-                //TODO: use the view descriptor
+                // TODO: use the view descriptor
                 let view = ResourceView::new_texture(t, htex.get_info().kind);
                 Ok(self.share.handles.borrow_mut().make_texture_srv(view, htex))
-            },
+            }
         }
     }
 
-    fn view_texture_as_unordered_access_raw(&mut self, _htex: &handle::RawTexture<R>)
-                                        -> Result<handle::RawUnorderedAccessView<R>, d::ResourceViewError> {
+    fn view_texture_as_unordered_access_raw
+        (&mut self,
+         _htex: &handle::RawTexture<R>)
+         -> Result<handle::RawUnorderedAccessView<R>, d::ResourceViewError> {
         Err(d::ResourceViewError::Unsupported) //TODO
     }
 
-    fn view_texture_as_render_target_raw(&mut self, htex: &handle::RawTexture<R>, desc: t::RenderDesc)
-                                         -> Result<handle::RawRenderTargetView<R>, d::TargetViewError> {
+    fn view_texture_as_render_target_raw
+        (&mut self,
+         htex: &handle::RawTexture<R>,
+         desc: t::RenderDesc)
+         -> Result<handle::RawRenderTargetView<R>, d::TargetViewError> {
         self.view_texture_as_target(htex, desc.level, desc.layer)
             .map(|view| {
                 let dim = htex.get_info().kind.get_level_dimensions(desc.level);
@@ -477,8 +521,11 @@ impl d::Device<R> for Device {
             })
     }
 
-    fn view_texture_as_depth_stencil_raw(&mut self, htex: &handle::RawTexture<R>, desc: t::DepthStencilDesc)
-                                         -> Result<handle::RawDepthStencilView<R>, d::TargetViewError> {
+    fn view_texture_as_depth_stencil_raw
+        (&mut self,
+         htex: &handle::RawTexture<R>,
+         desc: t::DepthStencilDesc)
+         -> Result<handle::RawDepthStencilView<R>, d::TargetViewError> {
         self.view_texture_as_target(htex, desc.level, desc.layer)
             .map(|view| {
                 let dim = htex.get_info().kind.get_level_dimensions(0);
@@ -518,7 +565,7 @@ impl d::Device<R> for Device {
 
     fn reset_fences(&mut self, fences: &[&handle::Fence<R>]) {
         if !self.share.private_caps.sync_supported {
-            return
+            return;
         }
 
         let gl = &self.share.context;
@@ -534,7 +581,11 @@ impl d::Device<R> for Device {
         }
     }
 
-    fn wait_for_fences(&mut self, fences: &[&handle::Fence<R>], wait: d::WaitFor, timeout_ms: u32) -> bool {
+    fn wait_for_fences(&mut self,
+                       fences: &[&handle::Fence<R>],
+                       wait: d::WaitFor,
+                       timeout_ms: u32)
+                       -> bool {
         if !self.share.private_caps.sync_supported {
             return true;
         }
@@ -549,25 +600,26 @@ impl d::Device<R> for Device {
                             if let Err(err) = self.share.check() {
                                 error!("Error when waiting on fence: {:?}", err);
                             }
-                            return false
+                            return false;
                         }
                         _ => (),
                     }
                 }
                 // All fences have indicated a positive result
                 true
-            },
+            }
             d::WaitFor::Any => {
-                let mut waiting = |timeout_ms: u32| {
+                let mut waiting = |_: u32| {
                     for fence in fences {
                         let fence = &*self.frame_handles.ref_fence(&fence).lock().unwrap();
                         match wait_fence(fence, &self.share.context, 0) {
-                            gl::ALREADY_SIGNALED | gl::CONDITION_SATISFIED => return true,
+                            gl::ALREADY_SIGNALED |
+                            gl::CONDITION_SATISFIED => return true,
                             gl::WAIT_FAILED => {
                                 if let Err(err) = self.share.check() {
                                     error!("Error when waiting on fence: {:?}", err);
                                 }
-                                return false
+                                return false;
                             }
                             _ => (),
                         }
@@ -580,48 +632,56 @@ impl d::Device<R> for Device {
                 //   Check current state of all fences first,
                 //   else go trough each fence and wait til at least one has finished
                 waiting(0) || waiting(timeout_ms)
-            },
+            }
         }
     }
 
-    fn read_mapping<'a, 'b, T>(&'a mut self, buf: &'b handle::Buffer<R, T>)
-                               -> Result<mapping::Reader<'b, R, T>,
-                                         mapping::Error>
+    fn read_mapping<'a, 'b, T>(&'a mut self,
+                               buf: &'b handle::Buffer<R, T>)
+                               -> Result<mapping::Reader<'b, R, T>, mapping::Error>
         where T: Copy
     {
         let gl = &self.share.context;
         let handles = &mut self.frame_handles;
         unsafe {
             mapping::read(buf.raw(), |mapping| match mapping.kind {
-                MappingKind::Persistent(ref mut status) =>
-                    status.cpu_access(|fence| { wait_fence(&*handles.ref_fence(&fence).lock().unwrap(), gl, 1_000_000); }),
-                MappingKind::Temporary =>
+                MappingKind::Persistent(ref mut status) => {
+                    status.cpu_access(|fence| {
+                        wait_fence(&*handles.ref_fence(&fence).lock().unwrap(), gl, 1_000_000);
+                    })
+                }
+                MappingKind::Temporary => {
                     temporary_ensure_mapped(&mut mapping.pointer,
                                             role_to_target(buf.get_info().role),
                                             *buf.raw().resource(),
                                             memory::READ,
-                                            gl),
+                                            gl)
+                }
             })
         }
     }
 
-    fn write_mapping<'a, 'b, T>(&'a mut self, buf: &'b handle::Buffer<R, T>)
-                                -> Result<mapping::Writer<'b, R, T>,
-                                          mapping::Error>
+    fn write_mapping<'a, 'b, T>(&'a mut self,
+                                buf: &'b handle::Buffer<R, T>)
+                                -> Result<mapping::Writer<'b, R, T>, mapping::Error>
         where T: Copy
     {
         let gl = &self.share.context;
         let handles = &mut self.frame_handles;
         unsafe {
             mapping::write(buf.raw(), |mapping| match mapping.kind {
-                MappingKind::Persistent(ref mut status) =>
-                    status.cpu_write_access(|fence| { wait_fence(&*handles.ref_fence(&fence).lock().unwrap(), gl, 1_000_000); }),
-                MappingKind::Temporary =>
+                MappingKind::Persistent(ref mut status) => {
+                    status.cpu_write_access(|fence| {
+                        wait_fence(&*handles.ref_fence(&fence).lock().unwrap(), gl, 1_000_000);
+                    })
+                }
+                MappingKind::Temporary => {
                     temporary_ensure_mapped(&mut mapping.pointer,
                                             role_to_target(buf.get_info().role),
                                             *buf.raw().resource(),
                                             memory::WRITE,
-                                            gl),
+                                            gl)
+                }
             })
         }
     }

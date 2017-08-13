@@ -17,7 +17,6 @@ use ash::version::DeviceV1_0;
 use std::{mem, ptr, slice};
 use std::sync::Arc;
 use std::collections::BTreeMap;
-use std::ops::Range;
 
 use core::{self, buffer, format, factory as f, image, mapping, memory, pass, shade, state as s};
 use core::{HeapType, SubPass};
@@ -566,7 +565,7 @@ impl core::Factory<R> for Factory {
                     }
                 }).collect::<Vec<_>>()
             }
-            Err((pipelines, err)) => {
+            Err((pipelines, _err)) => {
                 let mut pipelines = pipelines.iter();
                 infos.iter().map(|ref info| {
                     match **info {
@@ -642,7 +641,7 @@ impl core::Factory<R> for Factory {
                     }
                 }).collect::<Vec<_>>()
             }
-            Err((pipelines, err)) => {
+            Err((pipelines, _err)) => {
                 let mut pipelines = pipelines.iter();
                 infos.iter().map(|ref info| {
                     match **info {
@@ -773,7 +772,7 @@ impl core::Factory<R> for Factory {
 
     fn bind_buffer_memory(&mut self, heap: &native::Heap, offset: u64, buffer: UnboundBuffer) -> Result<native::Buffer, buffer::CreationError> {
         // TODO: error handling
-        unsafe { self.inner.0.bind_buffer_memory((buffer.0).inner, heap.0, offset); }
+        unsafe { self.inner.0.bind_buffer_memory((buffer.0).inner, heap.0, offset).unwrap(); }
 
         let buffer = native::Buffer {
             inner: buffer.0.inner,
@@ -885,7 +884,7 @@ impl core::Factory<R> for Factory {
     ///
     fn bind_image_memory(&mut self, heap: &native::Heap, offset: u64, image: UnboundImage) -> Result<native::Image, image::CreationError> {
         // TODO: error handling
-        unsafe { self.inner.0.bind_image_memory(image.0.inner, heap.0, offset); }
+        unsafe { self.inner.0.bind_image_memory(image.0.inner, heap.0, offset).unwrap(); }
 
         Ok(image.0)
     }
@@ -1014,7 +1013,7 @@ impl core::Factory<R> for Factory {
         }).collect::<Vec<_>>()
     }
 
-    fn reset_descriptor_set_pool(&mut self, pool: &mut native::DescriptorSetPool) {
+    fn reset_descriptor_set_pool(&mut self, _pool: &mut native::DescriptorSetPool) {
         unimplemented!()
     }
 
@@ -1228,7 +1227,7 @@ impl core::Factory<R> for Factory {
     fn reset_fences(&mut self, fences: &[&native::Fence]) {
         let fences = fences.iter().map(|fence| fence.0).collect::<Vec<_>>();
         unsafe {
-            self.inner.0.reset_fences(&fences);
+            self.inner.0.reset_fences(&fences).unwrap(); // TODO: error handling
         }
     }
 
@@ -1318,7 +1317,7 @@ impl core::Factory<R> for Factory {
         unsafe { self.inner.0.destroy_sampler(sampler.0, None); }
     }
 
-    fn destroy_descriptor_heap(&mut self, heap: native::DescriptorHeap) { }
+    fn destroy_descriptor_heap(&mut self, _heap: native::DescriptorHeap) { }
 
     fn destroy_descriptor_set_pool(&mut self, pool: native::DescriptorSetPool) {
         unsafe { self.inner.0.destroy_descriptor_pool(pool.inner, None); }

@@ -14,11 +14,10 @@
 
 //! Command pools
 
-use {Backend, CommandQueue};
-use command::{self, ComputeCommandBuffer, Encoder, GeneralCommandBuffer, GraphicsCommandBuffer,
+use Backend;
+use command::{ComputeCommandBuffer, Encoder, GeneralCommandBuffer, GraphicsCommandBuffer,
               TransferCommandBuffer};
 pub use queue::{ComputeQueue, GeneralQueue, GraphicsQueue, TransferQueue};
-use std::ops::DerefMut;
 
 /// `CommandPool` can allocate command buffers of a specific type only.
 /// The allocated command buffers are associated with the creating command queue.
@@ -32,12 +31,10 @@ pub trait RawCommandPool<B: Backend>: Send {
     fn reserve(&mut self, additional: usize);
 
     #[doc(hidden)]
-    unsafe fn from_queue<Q>(queue: Q, capacity: usize) -> Self
-    where Q: AsRef<B::CommandQueue>;
+    unsafe fn from_queue<Q>(queue: Q, capacity: usize) -> Self where Q: AsRef<B::CommandQueue>;
 
     #[doc(hidden)]
-    unsafe fn acquire_command_buffer(&mut self)
-        -> &mut B::RawCommandBuffer;
+    unsafe fn acquire_command_buffer(&mut self) -> &mut B::RawCommandBuffer;
 }
 
 ///
@@ -46,10 +43,14 @@ impl<B: Backend> GeneralCommandPool<B> {
     /// Reset the command pool and the corresponding command buffers.
     ///
     /// # Synchronization: You may _not_ free the pool if a command buffer is still in use (pool memory still in use)
-    pub fn reset(&mut self) { self.0.reset() }
+    pub fn reset(&mut self) {
+        self.0.reset()
+    }
 
     /// Reserve an additional amount of command buffers.
-    pub fn reserve(&mut self, additional: usize) { self.0.reserve(additional) }
+    pub fn reserve(&mut self, additional: usize) {
+        self.0.reserve(additional)
+    }
 
     /// Get a command buffer for recording.
     ///
@@ -66,10 +67,14 @@ impl<B: Backend> GraphicsCommandPool<B> {
     /// Reset the command pool and the corresponding command buffers.
     ///
     /// # Synchronization: You may _not_ free the pool if a command buffer is still in use (pool memory still in use)
-    pub fn reset(&mut self) { self.0.reset() }
+    pub fn reset(&mut self) {
+        self.0.reset()
+    }
 
     /// Reserve an additional amount of command buffers.
-    pub fn reserve(&mut self, additional: usize) { self.0.reserve(additional) }
+    pub fn reserve(&mut self, additional: usize) {
+        self.0.reserve(additional)
+    }
 
     /// Get a command buffer for recording.
     ///
@@ -86,10 +91,14 @@ impl<B: Backend> ComputeCommandPool<B> {
     /// Reset the command pool and the corresponding command buffers.
     ///
     /// # Synchronization: You may _not_ free the pool if a command buffer is still in use (pool memory still in use)
-    pub fn reset(&mut self) { self.0.reset() }
+    pub fn reset(&mut self) {
+        self.0.reset()
+    }
 
     /// Reserve an additional amount of command buffers.
-    pub fn reserve(&mut self, additional: usize) { self.0.reserve(additional) }
+    pub fn reserve(&mut self, additional: usize) {
+        self.0.reserve(additional)
+    }
 
     /// Get a command buffer for recording.
     ///
@@ -106,10 +115,14 @@ impl<B: Backend> TransferCommandPool<B> {
     /// Reset the command pool and the corresponding command buffers.
     ///
     /// # Synchronization: You may _not_ free the pool if a command buffer is still in use (pool memory still in use)
-    pub fn reset(&mut self) { self.0.reset() }
+    pub fn reset(&mut self) {
+        self.0.reset()
+    }
 
     /// Reserve an additional amount of command buffers.
-    pub fn reserve(&mut self, additional: usize) { self.0.reserve(additional) }
+    pub fn reserve(&mut self, additional: usize) {
+        self.0.reserve(additional)
+    }
 
     /// Get a command buffer for recording.
     ///
@@ -122,4 +135,4 @@ impl<B: Backend> TransferCommandPool<B> {
 }
 
 ///
-pub trait SubpassCommandPool<B: Backend> { }
+pub trait SubpassCommandPool<B: Backend> {}

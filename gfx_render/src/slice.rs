@@ -78,7 +78,8 @@ pub struct Slice<R: Resources> {
 impl<R: Resources> Slice<R> {
     /// Creates a new `Slice` to match the supplied vertex buffer, from start to end, in order.
     pub fn new_match_vertex_buffer<V>(vbuf: &handle::Buffer<R, V>) -> Self
-                                      where V: pso::buffer::Structure<Format> {
+        where V: pso::buffer::Structure<Format>
+    {
         Slice {
             start: 0,
             end: vbuf.len() as u32,
@@ -95,13 +96,13 @@ impl<R: Resources> Slice<R> {
         match prim {
             p::PointList => nv,
             p::LineList => nv / 2,
-            p::LineStrip => (nv-1),
+            p::LineStrip => (nv - 1),
             p::TriangleList => nv / 3,
-            p::TriangleStrip => (nv-2) / 3,
+            p::TriangleStrip => (nv - 2) / 3,
             p::LineListAdjacency => nv / 4,
-            p::LineStripAdjacency => (nv-3),
+            p::LineStripAdjacency => (nv - 3),
             p::TriangleListAdjacency => nv / 6,
-            p::TriangleStripAdjacency => (nv-4) / 2,
+            p::TriangleStripAdjacency => (nv - 4) / 2,
             p::PatchList(num) => nv / (num as u32),
         }
     }

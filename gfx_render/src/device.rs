@@ -64,9 +64,12 @@ impl<S: fmt::Debug + fmt::Display> Error for PipelineStateError<S> {
     fn description(&self) -> &str {
         match *self {
             PipelineStateError::Program(_) => "Shader program failed to link",
-            PipelineStateError::DescriptorInit(_) =>
-                "Unable to create PSO descriptor due to mismatched formats",
-            PipelineStateError::DeviceCreate(_) => "Device failed to create the handle give the descriptor",
+            PipelineStateError::DescriptorInit(_) => {
+                "Unable to create PSO descriptor due to mismatched formats"
+            }
+            PipelineStateError::DeviceCreate(_) => {
+                "Device failed to create the handle give the descriptor"
+            }
         }
     }
 
@@ -102,11 +105,10 @@ impl<S> From<CreationError> for PipelineStateError<S> {
 pub trait DeviceExt<R: Resources>: Device<R> {
     /// Creates an immutable vertex buffer from the supplied vertices.
     /// A `Slice` will have to manually be constructed.
-    fn create_vertex_buffer<T>(&mut self, vertices: &[T])
-                               -> handle::Buffer<R, T>
+    fn create_vertex_buffer<T>(&mut self, vertices: &[T]) -> handle::Buffer<R, T>
         where T: Pod + pso::buffer::Structure<format::Format>
     {
-        //debug_assert!(nv <= self.get_capabilities().max_vertex_count);
+        // debug_assert!(nv <= self.get_capabilities().max_vertex_count);
         self.create_buffer_immutable(vertices, buffer::Role::Vertex, Bind::empty())
             .unwrap()
     }
@@ -114,8 +116,7 @@ pub trait DeviceExt<R: Resources>: Device<R> {
     /// Creates an immutable index buffer from the supplied vertices.
     ///
     /// The paramater `indices` is typically a &[u16] or &[u32] slice.
-    fn create_index_buffer<T>(&mut self, indices: T)
-                              -> IndexBuffer<R>
+    fn create_index_buffer<T>(&mut self, indices: T) -> IndexBuffer<R>
         where T: IntoIndexBuffer<R>
     {
         indices.into_index_buffer(self)
@@ -123,7 +124,9 @@ pub trait DeviceExt<R: Resources>: Device<R> {
 
     /// Creates an immutable vertex buffer from the supplied vertices,
     /// together with a `Slice` from the supplied indices.
-    fn create_vertex_buffer_with_slice<B, V>(&mut self, vertices: &[V], indices: B)
+    fn create_vertex_buffer_with_slice<B, V>(&mut self,
+                                             vertices: &[V],
+                                             indices: B)
                                              -> (handle::Buffer<R, V>, Slice<R>)
         where V: Pod + pso::buffer::Structure<format::Format>,
               B: IntoIndexBuffer<R>
@@ -136,12 +139,13 @@ pub trait DeviceExt<R: Resources>: Device<R> {
             IndexBuffer::Index32(ref ib) => ib.len(),
         };
 
-        (vertex_buffer, Slice {
+        (vertex_buffer,
+         Slice {
             start: 0,
             end: buffer_length as u32,
             base_vertex: 0,
             instances: None,
-            buffer: index_buffer
+            buffer: index_buffer,
         })
     }
 
@@ -152,13 +156,14 @@ pub trait DeviceExt<R: Resources>: Device<R> {
         self.create_buffer(num,
                            buffer::Role::Constant,
                            memory::Usage::Dynamic,
-                           Bind::empty()).unwrap()
+                           Bind::empty())
+            .unwrap()
     }
 
     /// Creates an upload buffer for `num` elements of type `T`.
-    fn create_upload_buffer<T>(&mut self, num: usize)
-                               -> Result<handle::Buffer<R, T>, buffer::CreationError>
-    {
+    fn create_upload_buffer<T>(&mut self,
+                               num: usize)
+                               -> Result<handle::Buffer<R, T>, buffer::CreationError> {
         self.create_buffer(num,
                            buffer::Role::Staging,
                            memory::Usage::Upload,
@@ -166,9 +171,9 @@ pub trait DeviceExt<R: Resources>: Device<R> {
     }
 
     /// Creates a download buffer for `num` elements of type `T`.
-    fn create_download_buffer<T>(&mut self, num: usize)
-                                 -> Result<handle::Buffer<R, T>, buffer::CreationError>
-    {
+    fn create_download_buffer<T>(&mut self,
+                                 num: usize)
+                                 -> Result<handle::Buffer<R, T>, buffer::CreationError> {
         self.create_buffer(num,
                            buffer::Role::Staging,
                            memory::Usage::Download,
@@ -176,7 +181,9 @@ pub trait DeviceExt<R: Resources>: Device<R> {
     }
 
     /// Creates a `ShaderSet` from the supplied vertex and pixel shader source code.
-    fn create_shader_set(&mut self, vs_code: &[u8], ps_code: &[u8])
+    fn create_shader_set(&mut self,
+                         vs_code: &[u8],
+                         ps_code: &[u8])
                          -> Result<ShaderSet<R>, ProgramError> {
         let vs = match self.create_shader_vertex(vs_code) {
             Ok(s) => s,
@@ -191,8 +198,11 @@ pub trait DeviceExt<R: Resources>: Device<R> {
 
     /// Creates a `ShaderSet` from the supplied vertex, geometry, and pixel
     /// shader source code. Mainly used for testing.
-    fn create_shader_set_geometry(&mut self, vs_code: &[u8], gs_code: &[u8], ps_code: &[u8])
-                         -> Result<ShaderSet<R>, ProgramError> {
+    fn create_shader_set_geometry(&mut self,
+                                  vs_code: &[u8],
+                                  gs_code: &[u8],
+                                  ps_code: &[u8])
+                                  -> Result<ShaderSet<R>, ProgramError> {
         let vs = match self.create_shader_vertex(vs_code) {
             Ok(s) => s,
             Err(e) => return Err(ProgramError::Vertex(e)),
@@ -210,8 +220,12 @@ pub trait DeviceExt<R: Resources>: Device<R> {
 
     /// Creates a `ShaderSet` from the supplied vertex, hull, domain, and pixel
     /// shader source code. Mainly used for testing.
-    fn create_shader_set_tessellation(&mut self, vs_code: &[u8], hs_code: &[u8], ds_code: &[u8], ps_code: &[u8])
-                         -> Result<ShaderSet<R>, ProgramError> {
+    fn create_shader_set_tessellation(&mut self,
+                                      vs_code: &[u8],
+                                      hs_code: &[u8],
+                                      ds_code: &[u8],
+                                      ps_code: &[u8])
+                                      -> Result<ShaderSet<R>, ProgramError> {
         let vs = match self.create_shader_vertex(vs_code) {
             Ok(s) => s,
             Err(e) => return Err(ProgramError::Vertex(e)),
@@ -235,7 +249,9 @@ pub trait DeviceExt<R: Resources>: Device<R> {
     }
 
     /// Creates a basic shader `Program` from the supplied vertex and pixel shader source code.
-    fn link_program(&mut self, vs_code: &[u8], ps_code: &[u8])
+    fn link_program(&mut self,
+                    vs_code: &[u8],
+                    ps_code: &[u8])
                     -> Result<handle::Program<R>, ProgramError> {
 
         let set = try!(self.create_shader_set(vs_code, ps_code));
@@ -244,10 +260,13 @@ pub trait DeviceExt<R: Resources>: Device<R> {
 
     /// Similar to `create_pipeline_from_program(..)`, but takes a `ShaderSet` as opposed to a
     /// shader `Program`.
-    fn create_pipeline_state<I: pso::PipelineInit>(&mut self, shaders: &ShaderSet<R>,
-                             primitive: Primitive, rasterizer: state::Rasterizer, init: I)
-                             -> Result<pso::PipelineState<R, I::Meta>, PipelineStateError<String>>
-    {
+    fn create_pipeline_state<I: pso::PipelineInit>
+        (&mut self,
+         shaders: &ShaderSet<R>,
+         primitive: Primitive,
+         rasterizer: state::Rasterizer,
+         init: I)
+         -> Result<pso::PipelineState<R, I::Meta>, PipelineStateError<String>> {
         let program = try!(self.create_program(shaders).map_err(|e| ProgramError::Link(e)));
         self.create_pipeline_from_program(&program, primitive, rasterizer, init).map_err(|error| {
             use self::PipelineStateError::*;
@@ -261,10 +280,13 @@ pub trait DeviceExt<R: Resources>: Device<R> {
 
     /// Creates a strongly typed `PipelineState` from its `Init` structure, a shader `Program`, a
     /// primitive type and a `Rasterizer`.
-    fn create_pipeline_from_program<'a, I: pso::PipelineInit>(&mut self, program: &'a handle::Program<R>,
-                                    primitive: Primitive, rasterizer: state::Rasterizer, init: I)
-                                    -> Result<pso::PipelineState<R, I::Meta>, PipelineStateError<&'a str>>
-    {
+    fn create_pipeline_from_program<'a, I: pso::PipelineInit>
+        (&mut self,
+         program: &'a handle::Program<R>,
+         primitive: Primitive,
+         rasterizer: state::Rasterizer,
+         init: I)
+         -> Result<pso::PipelineState<R, I::Meta>, PipelineStateError<&'a str>> {
         let mut descriptor = Descriptor::new(primitive, rasterizer);
         let meta = try!(init.link_to(&mut descriptor, program.get_info()));
         let raw = try!(self.create_pipeline_state_raw(program, &descriptor));
@@ -275,20 +297,23 @@ pub trait DeviceExt<R: Resources>: Device<R> {
     /// Creates a strongly typed `PipelineState` from its `Init` structure. Automatically creates a
     /// shader `Program` from a vertex and pixel shader source, as well as a `Rasterizer` capable
     /// of rendering triangle faces without culling.
-    fn create_pipeline_simple<I: pso::PipelineInit>(&mut self, vs: &[u8], ps: &[u8], init: I)
-                              -> Result<pso::PipelineState<R, I::Meta>, PipelineStateError<String>>
-    {
+    fn create_pipeline_simple<I: pso::PipelineInit>
+        (&mut self,
+         vs: &[u8],
+         ps: &[u8],
+         init: I)
+         -> Result<pso::PipelineState<R, I::Meta>, PipelineStateError<String>> {
         let set = try!(self.create_shader_set(vs, ps));
-        self.create_pipeline_state(&set, Primitive::TriangleList, state::Rasterizer::new_fill(),
+        self.create_pipeline_state(&set,
+                                   Primitive::TriangleList,
+                                   state::Rasterizer::new_fill(),
                                    init)
     }
 
     /// Create a linear sampler with clamping to border.
     fn create_sampler_linear(&mut self) -> handle::Sampler<R> {
-        self.create_sampler(texture::SamplerInfo::new(
-            texture::FilterMethod::Trilinear,
-            texture::WrapMode::Clamp,
-        ))
+        self.create_sampler(texture::SamplerInfo::new(texture::FilterMethod::Trilinear,
+                                                      texture::WrapMode::Clamp))
     }
 }
 

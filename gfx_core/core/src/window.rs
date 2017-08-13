@@ -120,9 +120,11 @@ pub trait Surface<B: Backend> {
     ///                             .with_color::<Srgba8>();
     /// surface.build_swapchain(swapchain_config, &queue);
     /// ```
-    fn build_swapchain<Q>(&mut self, config: SwapchainConfig, present_queue: &Q) -> Self::SwapChain
-    where
-        Q: AsRef<B::CommandQueue>;
+    fn build_swapchain<Q>(&mut self,
+                          config: SwapchainConfig,
+                          present_queue: &Q)
+                          -> Self::SwapChain
+        where Q: AsRef<B::CommandQueue>;
 }
 
 /// Handle to a backbuffer of the swapchain.
@@ -264,11 +266,9 @@ pub trait SwapChain<B: Backend> {
     /// ```no_run
     ///
     /// ```
-    fn present<Q: AsMut<B::CommandQueue>>(
-        &mut self,
-        present_queue: &mut Q,
-        wait_semaphores: &[&handle::Semaphore<B::Resources>],
-    );
+    fn present<Q: AsMut<B::CommandQueue>>(&mut self,
+                                          present_queue: &mut Q,
+                                          wait_semaphores: &[&handle::Semaphore<B::Resources>]);
 }
 
 /// Extension for windows.

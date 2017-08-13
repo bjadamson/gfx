@@ -97,7 +97,6 @@
 #[cfg(feature = "mint")]
 extern crate mint;
 
-#[macro_use]
 extern crate log;
 #[macro_use]
 extern crate derivative;
@@ -106,7 +105,7 @@ extern crate gfx_core as core;
 
 /// public re-exported traits
 pub mod traits {
-    pub use core::{Device};
+    pub use core::Device;
     pub use core::memory::Pod;
     pub use device::DeviceExt;
 }
@@ -116,31 +115,32 @@ pub use draw_state::{preset, state};
 pub use draw_state::target::*;
 
 // public re-exports
-pub use core::{Adapter, Backend, CommandQueue, Gpu, Frame, FrameSync, Headless, Primitive, QueueFamily, QueueType,
-               Resources, SubmissionError, SubmissionResult, Surface, SwapChain, SwapchainConfig, WindowExt};
+pub use core::{Adapter, Backend, CommandQueue, Gpu, Frame, FrameSync, Headless, Primitive,
+               QueueFamily, QueueType, Resources, SubmissionError, SubmissionResult, Surface,
+               SwapChain, SwapchainConfig, WindowExt};
 pub use core::{VertexCount, InstanceCount};
 pub use core::{ShaderSet, VertexShader, HullShader, DomainShader, GeometryShader, PixelShader};
 pub use core::{GeneralCommandPool, GraphicsCommandPool, ComputeCommandPool, SubpassCommandPool};
 pub use core::{buffer, format, handle, texture, mapping, queue};
 pub use core::device::{Device, ResourceViewError, TargetViewError, CombinedError, WaitFor};
-pub use core::memory::{self, Bind, TRANSFER_SRC, TRANSFER_DST, RENDER_TARGET,
-                       DEPTH_STENCIL, SHADER_RESOURCE, UNORDERED_ACCESS};
+pub use core::memory::{self, Bind, TRANSFER_SRC, TRANSFER_DST, RENDER_TARGET, DEPTH_STENCIL,
+                       SHADER_RESOURCE, UNORDERED_ACCESS};
 pub use core::command::{Buffer as CommandBuffer, InstanceParams};
 pub use core::shade::{ProgramInfo, UniformValue};
 
-pub use encoder::{CopyBufferResult, CopyBufferTextureResult, CopyError,
-                  CopyTextureBufferResult, GraphicsEncoder, UpdateError, GraphicsPoolExt};
+pub use encoder::{CopyBufferResult, CopyBufferTextureResult, CopyError, CopyTextureBufferResult,
+                  GraphicsEncoder, UpdateError, GraphicsPoolExt};
 pub use device::PipelineStateError;
 pub use slice::{Slice, IntoIndexBuffer, IndexBuffer};
 pub use swapchain::SwapChainExt;
-pub use pso::{PipelineState};
-pub use pso::buffer::{VertexBuffer, InstanceBuffer, RawVertexBuffer,
-                      ConstantBuffer, RawConstantBuffer, Global, RawGlobal};
-pub use pso::resource::{ShaderResource, RawShaderResource, UnorderedAccess,
-                        Sampler, TextureSampler};
-pub use pso::target::{DepthStencilTarget, DepthTarget, StencilTarget,
-                      RenderTarget, RawRenderTarget, BlendTarget, BlendRef, Scissor};
-pub use pso::bundle::{Bundle};
+pub use pso::PipelineState;
+pub use pso::buffer::{VertexBuffer, InstanceBuffer, RawVertexBuffer, ConstantBuffer,
+                      RawConstantBuffer, Global, RawGlobal};
+pub use pso::resource::{ShaderResource, RawShaderResource, UnorderedAccess, Sampler,
+                        TextureSampler};
+pub use pso::target::{DepthStencilTarget, DepthTarget, StencilTarget, RenderTarget,
+                      RawRenderTarget, BlendTarget, BlendRef, Scissor};
+pub use pso::bundle::Bundle;
 
 /// Render commands encoder
 mod encoder;

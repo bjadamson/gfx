@@ -17,13 +17,10 @@
 //! // TODO
 
 use {handle, pso, Backend};
-use command::{Submit, GeneralCommandBuffer, GraphicsCommandBuffer,
-              ComputeCommandBuffer, TransferCommandBuffer};
-use super::capability::{General, Graphics, Compute, Transfer, Supports, Upper};
+use command::Submit;
+use super::capability::{Transfer, Supports, Upper};
 use std::marker::PhantomData;
 use smallvec::SmallVec;
-
-use super::{GeneralQueue, GraphicsQueue, ComputeQueue, TransferQueue};
 
 /// Raw submission information for a command queue.
 pub struct RawSubmission<'a, B: Backend + 'a> {
@@ -58,11 +55,12 @@ impl<'a, B: Backend> Submission<'a, B, Transfer> {
 }
 
 impl<'a, B, C> Submission<'a, B, C>
-where
-    B: Backend
+    where B: Backend
 {
     /// Set semaphores which will waited on to be signalled before the submission will be executed.
-    pub fn wait_on(mut self, semaphores: &[(&'a handle::Semaphore<B::Resources>, pso::PipelineStage)]) -> Self {
+    pub fn wait_on(mut self,
+                   semaphores: &[(&'a handle::Semaphore<B::Resources>, pso::PipelineStage)])
+                   -> Self {
         self.wait_semaphores.extend_from_slice(semaphores);
         self
     }
@@ -87,9 +85,10 @@ where
     /// All submits for this call must be of the same capability.
     /// Submission will be automatically promoted to to the minimum required capability
     /// to hold all passed submits.
-    pub fn submit<S>(mut self, submits: &[Submit<B, S>]) -> Submission<'a, B, <(C, S) as Upper>::Result>
-    where
-        (C, S): Upper
+    pub fn submit<S>(mut self,
+                     submits: &[Submit<B, S>])
+                     -> Submission<'a, B, <(C, S) as Upper>::Result>
+        where (C, S): Upper
     {
         self.cmd_buffers.extend(submits.iter().map(|submit| unsafe { submit.get_info().clone() }));
         Submission {
@@ -105,8 +104,7 @@ where
     /// Submission promotion is only necessary for shoving multiple submissions
     /// of different capabilities into one submit call.
     pub fn promote<P>(self) -> Submission<'a, B, P>
-    where
-        P: Supports<C>
+        where P: Supports<C>
     {
         Submission {
             cmd_buffers: self.cmd_buffers,

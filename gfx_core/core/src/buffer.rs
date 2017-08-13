@@ -29,9 +29,7 @@ pub struct Raw<R: Resources> {
 
 impl<R: Resources> Raw<R> {
     #[doc(hidden)]
-    pub fn new(resource: R::Buffer,
-               info: Info,
-               mapping: Option<R::Mapping>) -> Self {
+    pub fn new(resource: R::Buffer, info: Info, mapping: Option<R::Mapping>) -> Self {
         Raw {
             resource: resource,
             info: info,
@@ -40,10 +38,14 @@ impl<R: Resources> Raw<R> {
     }
 
     #[doc(hidden)]
-    pub fn resource(&self) -> &R::Buffer { &self.resource }
+    pub fn resource(&self) -> &R::Buffer {
+        &self.resource
+    }
 
     /// Get buffer info
-    pub fn get_info(&self) -> &Info { &self.info }
+    pub fn get_info(&self) -> &Info {
+        &self.info
+    }
 
     /// Is this buffer mapped ?
     pub fn is_mapped(&self) -> bool {
@@ -60,7 +62,8 @@ impl<R: Resources> Raw<R> {
     /// Fails if `T` is zero-sized.
     #[doc(hidden)]
     pub unsafe fn len<T>(&self) -> usize {
-        assert!(mem::size_of::<T>() != 0, "Cannot determine the length of zero-sized buffers.");
+        assert!(mem::size_of::<T>() != 0,
+                "Cannot determine the length of zero-sized buffers.");
         self.get_info().size / mem::size_of::<T>()
     }
 }
@@ -119,15 +122,18 @@ pub enum CreationError {
     /// Unknown other error.
     Other,
     /// Usage mode is not supported
-    UnsupportedUsage(memory::Usage),
-    // TODO: unsupported role
+    UnsupportedUsage(memory::Usage), // TODO: unsupported role
 }
 
 impl fmt::Display for CreationError {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         match *self {
-            CreationError::UnsupportedBind(ref bind) => write!(f, "{}: {:?}", self.description(), bind),
-            CreationError::UnsupportedUsage(usage) => write!(f, "{}: {:?}", self.description(), usage),
+            CreationError::UnsupportedBind(ref bind) => {
+                write!(f, "{}: {:?}", self.description(), bind)
+            }
+            CreationError::UnsupportedUsage(usage) => {
+                write!(f, "{}: {:?}", self.description(), usage)
+            }
             _ => write!(f, "{}", self.description()),
         }
     }

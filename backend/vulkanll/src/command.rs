@@ -22,9 +22,10 @@ use std::ops::DerefMut;
 use core::{self, command, memory, pso, state, target, VertexCount, VertexOffset};
 use core::buffer::IndexBufferView;
 use core::memory::{ImageStateSrc, ImageStateDst};
-use core::command::{RenderPassInlineEncoder, RenderPassSecondaryEncoder};
+use core::command::RenderPassInlineEncoder;
 use data;
-use native::{self, GeneralCommandBuffer, GraphicsCommandBuffer, ComputeCommandBuffer, TransferCommandBuffer, SubpassCommandBuffer};
+use native::{self, GeneralCommandBuffer, GraphicsCommandBuffer, ComputeCommandBuffer,
+             TransferCommandBuffer, SubpassCommandBuffer};
 use {DeviceInner, Resources as R};
 
 pub struct SubmitInfo {
@@ -39,58 +40,59 @@ pub struct CommandBuffer {
 impl CommandBuffer {
     fn end(&mut self) -> SubmitInfo {
         unsafe {
-            self.device.0.end_command_buffer(self.inner); // TODO: error handling
+            self.device.0.end_command_buffer(self.inner).unwrap(); // TODO: error handling
         }
 
-        SubmitInfo {
-            command_buffer: self.inner,
-        }
+        SubmitInfo { command_buffer: self.inner }
     }
 
-    fn pipeline_barrier<'a>(&mut self, memory_barriers: &[memory::MemoryBarrier],
-        buffer_barriers: &[memory::BufferBarrier<'a, R>], image_barriers: &[memory::ImageBarrier<'a, R>])
-    {
-        let image_barriers = image_barriers.iter().map(|barrier| {
-            // TODO
-            let base_range = vk::ImageSubresourceRange {
-                aspect_mask: vk::IMAGE_ASPECT_COLOR_BIT,
-                base_mip_level: 0,
-                level_count: 1,
-                base_array_layer: 0,
-                layer_count: vk::VK_REMAINING_ARRAY_LAYERS,
-            };
+    fn pipeline_barrier<'a>(&mut self,
+                            _: &[memory::MemoryBarrier],
+                            _: &[memory::BufferBarrier<'a, R>],
+                            image_barriers: &[memory::ImageBarrier<'a, R>]) {
+        let image_barriers = image_barriers.iter()
+            .map(|barrier| {
+                // TODO
+                let base_range = vk::ImageSubresourceRange {
+                    aspect_mask: vk::IMAGE_ASPECT_COLOR_BIT,
+                    base_mip_level: 0,
+                    level_count: 1,
+                    base_array_layer: 0,
+                    layer_count: vk::VK_REMAINING_ARRAY_LAYERS,
+                };
 
-            let (src_access, old_layout) = match barrier.state_src {
-                ImageStateSrc::Present(access) => {
-                    (data::map_image_access(access), vk::ImageLayout::PresentSrcKhr)
-                }
-                ImageStateSrc::State(access, layout) => {
-                    (data::map_image_access(access), data::map_image_layout(layout))
-                }
-            };
+                let (src_access, old_layout) = match barrier.state_src {
+                    ImageStateSrc::Present(access) => {
+                        (data::map_image_access(access), vk::ImageLayout::PresentSrcKhr)
+                    }
+                    ImageStateSrc::State(access, layout) => {
+                        (data::map_image_access(access), data::map_image_layout(layout))
+                    }
+                };
 
-            let (dst_access, new_layout) = match barrier.state_dst {
-                ImageStateDst::Present => {
-                    (vk::AccessFlags::empty(), vk::ImageLayout::PresentSrcKhr) // TODO
-                }
-                ImageStateDst::State(access, layout) => {
-                    (data::map_image_access(access), data::map_image_layout(layout))
-                }
-            };
+                let (dst_access, new_layout) = match barrier.state_dst {
+                    ImageStateDst::Present => {
+                        (vk::AccessFlags::empty(), vk::ImageLayout::PresentSrcKhr) // TODO
+                    }
+                    ImageStateDst::State(access, layout) => {
+                        (data::map_image_access(access), data::map_image_layout(layout))
+                    }
+                };
 
-            vk::ImageMemoryBarrier {
-                s_type: vk::StructureType::ImageMemoryBarrier,
-                p_next: ptr::null(),
-                src_access_mask: src_access,
-                dst_access_mask: dst_access,
-                old_layout: old_layout,
-                new_layout: new_layout,
-                src_queue_family_index: vk::VK_QUEUE_FAMILY_IGNORED, // TODO
-                dst_queue_family_index: vk::VK_QUEUE_FAMILY_IGNORED, // TODO
-                image: barrier.image.inner,
-                subresource_range: base_range,
-            }
-        }).collect::<Vec<_>>();
+                vk::ImageMemoryBarrier {
+                    s_type: vk::StructureType::ImageMemoryBarrier,
+                    p_next: ptr::null(),
+                    src_access_mask: src_access,
+                    dst_access_mask: dst_access,
+                    old_layout: old_layout,
+                    new_layout: new_layout,
+                    src_queue_family_index: vk::VK_QUEUE_FAMILY_IGNORED, // TODO
+                    dst_queue_family_index: vk::VK_QUEUE_FAMILY_IGNORED, // TODO
+                    image: barrier.image.inner,
+                    subresource_range: base_range,
+                }
+            })
+            .collect::<Vec<_>>();
 
         unsafe {
             self.device.0.cmd_pipeline_barrier(
@@ -109,53 +111,60 @@ impl CommandBuffer {
         unimplemented!()
     }
 
-    fn update_buffer(&mut self, buffer: &native::Buffer, data: &[u8], offset: usize) {
+    fn update_buffer(&mut self, _buffer: &native::Buffer, _data: &[u8], _offset: usize) {
         unimplemented!()
     }
 
-    fn copy_buffer(&mut self, src: &native::Buffer, dst: &native::Buffer, regions:&[command::BufferCopy]) {
+    fn copy_buffer(&mut self,
+                   _src: &native::Buffer,
+                   _dst: &native::Buffer,
+                   _regions: &[command::BufferCopy]) {
         unimplemented!()
     }
 
-    fn copy_image(&mut self, src: &native::Image, dst: &native::Image) {
+    fn copy_image(&mut self, _src: &native::Image, _dst: &native::Image) {
         unimplemented!()
     }
 
-    fn copy_buffer_to_image(&mut self, src: &native::Buffer, dst: &native::Image, layout: memory::ImageLayout, regions: &[command::BufferImageCopy]) {
+    fn copy_buffer_to_image(&mut self,
+                            src: &native::Buffer,
+                            dst: &native::Image,
+                            layout: memory::ImageLayout,
+                            regions: &[command::BufferImageCopy]) {
         fn div(a: u32, b: u32) -> u32 {
             assert_eq!(a % b, 0);
             a / b
         };
-        let regions = regions.iter().map(|region| {
-            let subresource_layers = vk::ImageSubresourceLayers {
-                aspect_mask: vk::IMAGE_ASPECT_COLOR_BIT, // TODO
-                mip_level: region.image_mip_level as u32,
-                base_array_layer: region.image_base_layer as u32,
-                layer_count: region.image_layers as u32,
-            };
-            let row_length = div(region.buffer_row_pitch, dst.bytes_per_texel as u32);
-            vk::BufferImageCopy {
-                buffer_offset: region.buffer_offset,
-                buffer_row_length: row_length,
-                buffer_image_height: div(region.buffer_slice_pitch, row_length),
-                image_subresource: subresource_layers,
-                image_offset: vk::Offset3D {
-                    x: region.image_offset.x,
-                    y: region.image_offset.y,
-                    z: region.image_offset.z,
-                },
-                image_extent: dst.extent.clone(),
-            }
-        }).collect::<Vec<_>>();
+        let regions = regions.iter()
+            .map(|region| {
+                let subresource_layers = vk::ImageSubresourceLayers {
+                    aspect_mask: vk::IMAGE_ASPECT_COLOR_BIT, // TODO
+                    mip_level: region.image_mip_level as u32,
+                    base_array_layer: region.image_base_layer as u32,
+                    layer_count: region.image_layers as u32,
+                };
+                let row_length = div(region.buffer_row_pitch, dst.bytes_per_texel as u32);
+                vk::BufferImageCopy {
+                    buffer_offset: region.buffer_offset,
+                    buffer_row_length: row_length,
+                    buffer_image_height: div(region.buffer_slice_pitch, row_length),
+                    image_subresource: subresource_layers,
+                    image_offset: vk::Offset3D {
+                        x: region.image_offset.x,
+                        y: region.image_offset.y,
+                        z: region.image_offset.z,
+                    },
+                    image_extent: dst.extent.clone(),
+                }
+            })
+            .collect::<Vec<_>>();
 
         unsafe {
-            self.device.0.cmd_copy_buffer_to_image(
-                self.inner, // commandBuffer
-                src.inner, // srcBuffer
-                dst.inner, // dstImage
-                data::map_image_layout(layout), // dstImageLayout
-                &regions, // pRegions
-            );
+            self.device.0.cmd_copy_buffer_to_image(self.inner, // commandBuffer
+                                                   src.inner, // srcBuffer
+                                                   dst.inner, // dstImage
+                                                   data::map_image_layout(layout), // dstImageLayout
+                                                   &regions /* pRegions */);
         }
     }
 
@@ -175,13 +184,11 @@ impl CommandBuffer {
         };
 
         unsafe {
-            self.device.0.cmd_clear_color_image(
-                self.inner,
-                rtv.image,
-                vk::ImageLayout::TransferDstOptimal,
-                &clear_value,
-                &[base_range],
-            )
+            self.device.0.cmd_clear_color_image(self.inner,
+                                                rtv.image,
+                                                vk::ImageLayout::TransferDstOptimal,
+                                                &clear_value,
+                                                &[base_range])
         };
     }
 
@@ -191,21 +198,17 @@ impl CommandBuffer {
 
     fn bind_graphics_pipeline(&mut self, pso: &native::GraphicsPipeline) {
         unsafe {
-            self.device.0.cmd_bind_pipeline(
-                self.inner,
-                vk::PipelineBindPoint::Graphics,
-                pso.pipeline,
-            )
+            self.device
+                .0
+                .cmd_bind_pipeline(self.inner, vk::PipelineBindPoint::Graphics, pso.pipeline)
         }
     }
 
     fn bind_compute_pipeline(&mut self, pso: &native::ComputePipeline) {
         unsafe {
-            self.device.0.cmd_bind_pipeline(
-                self.inner,
-                vk::PipelineBindPoint::Compute,
-                pso.pipeline,
-            )
+            self.device
+                .0
+                .cmd_bind_pipeline(self.inner, vk::PipelineBindPoint::Compute, pso.pipeline)
         }
     }
 
@@ -213,61 +216,65 @@ impl CommandBuffer {
         unimplemented!()
     }
 
+    #[allow(dead_code)]
     fn clear_attachment(&mut self) {
         unimplemented!()
     }
 
-    fn draw(&mut self, start: VertexCount, count: VertexCount, instances: Option<command::InstanceParams>) {
+    fn draw(&mut self,
+            start: VertexCount,
+            count: VertexCount,
+            instances: Option<command::InstanceParams>) {
         let (num_instances, start_instance) = match instances {
             Some((num_instances, start_instance)) => (num_instances, start_instance),
             None => (1, 0),
         };
 
         unsafe {
-            self.device.0.cmd_draw(
-                self.inner,     // commandBuffer
-                count,          // vertexCount
-                num_instances,  // instanceCount
-                start,          // firstVertex
-                start_instance, // firstInstance
-            )
+            self.device.0.cmd_draw(self.inner, // commandBuffer
+                                   count, // vertexCount
+                                   num_instances, // instanceCount
+                                   start, // firstVertex
+                                   start_instance /* firstInstance */)
         }
     }
 
-    fn draw_indexed(&mut self, start: VertexCount, count: VertexCount, base: VertexOffset, instances: Option<command::InstanceParams>) {
-         let (num_instances, start_instance) = match instances {
+    fn draw_indexed(&mut self,
+                    start: VertexCount,
+                    count: VertexCount,
+                    base: VertexOffset,
+                    instances: Option<command::InstanceParams>) {
+        let (num_instances, start_instance) = match instances {
             Some((num_instances, start_instance)) => (num_instances, start_instance),
             None => (1, 0),
         };
 
         unsafe {
-            self.device.0.cmd_draw_indexed(
-                self.inner,     // commandBuffer
-                count,          // indexCount
-                num_instances,  // instanceCount
-                start,          // firstIndex
-                base,           // vertexOffset
-                start_instance, // firstInstance
-            )
+            self.device.0.cmd_draw_indexed(self.inner, // commandBuffer
+                                           count, // indexCount
+                                           num_instances, // instanceCount
+                                           start, // firstIndex
+                                           base, // vertexOffset
+                                           start_instance /* firstInstance */)
         }
     }
 
+    #[allow(dead_code)]
     fn draw_indirect(&mut self) {
         unimplemented!()
     }
 
+    #[allow(dead_code)]
     fn draw_indexed_indirect(&mut self) {
         unimplemented!()
     }
 
     fn dispatch(&mut self, x: u32, y: u32, z: u32) {
         unsafe {
-            self.device.0.cmd_dispatch(
-                self.inner, // commandBuffer
-                x,          // groupCountX
-                y,          // groupCountY
-                z,          // groupCountZ
-            )
+            self.device.0.cmd_dispatch(self.inner, // commandBuffer
+                                       x, // groupCountX
+                                       y, // groupCountY
+                                       z /* groupCountZ */)
         }
     }
 
@@ -291,26 +298,23 @@ impl CommandBuffer {
         let offsets = vbs.0.iter().map(|&(_, offset)| offset as u64).collect::<Vec<_>>();
 
         unsafe {
-            self.device.0.cmd_bind_vertex_buffers(
-                self.inner,
-                0,
-                &buffers,
-                &offsets,
-            );
+            self.device.0.cmd_bind_vertex_buffers(self.inner, 0, &buffers, &offsets);
         }
     }
 
     fn set_viewports(&mut self, viewports: &[target::Rect]) {
-        let viewports = viewports.iter().map(|viewport| {
-            vk::Viewport {
-                x: viewport.x as f32,
-                y: viewport.y as f32,
-                width: viewport.w as f32,
-                height: viewport.h as f32,
-                min_depth: 0.0,
-                max_depth: 1.0,
-            }
-        }).collect::<Vec<_>>();
+        let viewports = viewports.iter()
+            .map(|viewport| {
+                vk::Viewport {
+                    x: viewport.x as f32,
+                    y: viewport.y as f32,
+                    width: viewport.w as f32,
+                    height: viewport.h as f32,
+                    min_depth: 0.0,
+                    max_depth: 1.0,
+                }
+            })
+            .collect::<Vec<_>>();
 
         unsafe {
             self.device.0.cmd_set_viewport(self.inner, &viewports);
@@ -318,18 +322,20 @@ impl CommandBuffer {
     }
 
     fn set_scissors(&mut self, scissors: &[target::Rect]) {
-        let scissors = scissors.iter().map(|scissor| {
-            vk::Rect2D {
-                offset: vk::Offset2D {
-                    x: scissor.x as i32,
-                    y: scissor.y as i32,
-                },
-                extent: vk::Extent2D {
-                    width: scissor.w as u32,
-                    height: scissor.h as u32,
+        let scissors = scissors.iter()
+            .map(|scissor| {
+                vk::Rect2D {
+                    offset: vk::Offset2D {
+                        x: scissor.x as i32,
+                        y: scissor.y as i32,
+                    },
+                    extent: vk::Extent2D {
+                        width: scissor.w as u32,
+                        height: scissor.h as u32,
+                    },
                 }
-            }
-        }).collect::<Vec<_>>();
+            })
+            .collect::<Vec<_>>();
 
         unsafe {
             self.device.0.cmd_set_scissor(self.inner, &scissors);
@@ -340,7 +346,10 @@ impl CommandBuffer {
         unimplemented!()
     }
 
-    fn clear_depth_stencil(&mut self, dsv: &native::DepthStencilView, depth: Option<target::Depth>, stencil: Option<target::Stencil>) {
+    fn clear_depth_stencil(&mut self,
+                           _dsv: &native::DepthStencilView,
+                           _depth: Option<target::Depth>,
+                           _stencil: Option<target::Stencil>) {
         unimplemented!()
     }
 
@@ -348,31 +357,29 @@ impl CommandBuffer {
         unimplemented!()
     }
 
-    fn bind_descriptor_heaps(&mut self, srv_cbv_uav: Option<&native::DescriptorHeap>, samplers: Option<&native::DescriptorHeap>) {
+    fn bind_descriptor_heaps(&mut self,
+                             _srv_cbv_uav: Option<&native::DescriptorHeap>,
+                             _samplers: Option<&native::DescriptorHeap>) {
         // TODO: unset all active descriptor sets?
     }
 
-    fn bind_descriptor_sets(
-        &mut self,
-        bind_point: vk::PipelineBindPoint,
-        layout: &native::PipelineLayout,
-        first_set: usize,
-        sets: &[&native::DescriptorSet])
-    {
+    fn bind_descriptor_sets(&mut self,
+                            bind_point: vk::PipelineBindPoint,
+                            layout: &native::PipelineLayout,
+                            first_set: usize,
+                            sets: &[&native::DescriptorSet]) {
         // TODO: verify sets from currently bound descriptor heap
-        let sets = sets.iter().map(|set| {
-            set.inner
-        }).collect::<Vec<_>>();
+        let sets = sets.iter()
+            .map(|set| set.inner)
+            .collect::<Vec<_>>();
 
         unsafe {
-            self.device.0.cmd_bind_descriptor_sets(
-                self.inner, // commandBuffer
-                bind_point, // pipelineBindPoint
-                layout.layout, // layout
-                first_set as u32, // firstSet
-                &sets, // pDescriptorSets
-                &[]// pDynamicOffsets // TODO
-            );
+            self.device.0.cmd_bind_descriptor_sets(self.inner, // commandBuffer
+                                                   bind_point, // pipelineBindPoint
+                                                   layout.layout, // layout
+                                                   first_set as u32, // firstSet
+                                                   &sets, // pDescriptorSets
+                                                   &[] /* pDynamicOffsets // TODO */);
         }
     }
 }
@@ -551,7 +558,7 @@ impl_compute_cmd_buffer!(ComputeCommandBuffer);
 
 // TODO: not only GraphicsCommandBuffer
 pub struct RenderPassInlineBuffer<C, R>
-    where C: core::GraphicsCommandBuffer<R> + DerefMut<Target=native::CommandBuffer>,
+    where C: core::GraphicsCommandBuffer<R> + DerefMut<Target = native::CommandBuffer>,
           R: core::Resources
 {
     _marker: PhantomData<(*const C, *const R)>,
@@ -610,8 +617,8 @@ impl<C> command::RenderPassInlineBuffer<C, R> for RenderPassInlineBuffer<C, R>
 
     fn finish(&mut self,
               command_buffer: &mut C,
-              render_pass: &native::RenderPass,
-              framebuffer: &native::FrameBuffer) {
+              _render_pass: &native::RenderPass,
+              _framebuffer: &native::FrameBuffer) {
         unsafe { command_buffer.device.0.cmd_end_render_pass(command_buffer.inner); }
     }
 
@@ -623,7 +630,7 @@ impl<C> command::RenderPassInlineBuffer<C, R> for RenderPassInlineBuffer<C, R>
         unimplemented!()
     }
 
-    fn clear_attachment(encoder: &mut RenderPassInlineEncoder<C, R>) {
+    fn clear_attachment(_encoder: &mut RenderPassInlineEncoder<C, R>) {
         unimplemented!()
     }
 
@@ -635,11 +642,11 @@ impl<C> command::RenderPassInlineBuffer<C, R> for RenderPassInlineBuffer<C, R>
         encoder.command_buffer.draw_indexed(start, count, base, instance)
     }
 
-    fn draw_indirect(encoder: &mut RenderPassInlineEncoder<C, R>) {
+    fn draw_indirect(_encoder: &mut RenderPassInlineEncoder<C, R>) {
         unimplemented!()
     }
 
-    fn draw_indexed_indirect(encoder: &mut RenderPassInlineEncoder<C, R>) {
+    fn draw_indexed_indirect(_encoder: &mut RenderPassInlineEncoder<C, R>) {
         unimplemented!()
     }
 
@@ -671,14 +678,14 @@ impl<C> command::RenderPassInlineBuffer<C, R> for RenderPassInlineBuffer<C, R>
         encoder.command_buffer.bind_descriptor_sets(vk::PipelineBindPoint::Graphics, layout, first_set, sets)
     }
 
-    fn push_constants(encoder: &mut RenderPassInlineEncoder<C, R>) {
+    fn push_constants(_encoder: &mut RenderPassInlineEncoder<C, R>) {
         unimplemented!()
     }
 }
 
 pub struct RenderPassSecondaryBuffer<C, R>
     where C: core::GraphicsCommandBuffer<R>,
-          R: core::Resources,
+          R: core::Resources
 {
     _marker: PhantomData<(*const C, *const R)>,
 }
@@ -686,11 +693,11 @@ pub struct RenderPassSecondaryBuffer<C, R>
 impl<C> command::RenderPassSecondaryBuffer<C, R> for RenderPassSecondaryBuffer<C, R>
     where C: core::GraphicsCommandBuffer<R, SecondaryBuffer=Self> + DerefMut<Target=native::CommandBuffer>
 {
-    fn begin(command_buffer: &mut command::Encoder<C>,
-             render_pass: &native::RenderPass,
-             framebuffer: &native::FrameBuffer,
-             render_area: target::Rect,
-             clear_values: &[command::ClearValue]
+    fn begin(_command_buffer: &mut command::Encoder<C>,
+             _render_pass: &native::RenderPass,
+             _framebuffer: &native::FrameBuffer,
+             _render_area: target::Rect,
+             _clear_values: &[command::ClearValue]
     ) -> Self {
         RenderPassSecondaryBuffer {
             _marker: PhantomData,
@@ -698,9 +705,9 @@ impl<C> command::RenderPassSecondaryBuffer<C, R> for RenderPassSecondaryBuffer<C
     }
 
     fn finish(&mut self,
-              command_buffer: &mut C,
-              render_pass: &native::RenderPass,
-              framebuffer: &native::FrameBuffer) {
+              _command_buffer: &mut C,
+              _render_pass: &native::RenderPass,
+              _framebuffer: &native::FrameBuffer) {
         unimplemented!()
     }
 
@@ -712,4 +719,3 @@ impl<C> command::RenderPassSecondaryBuffer<C, R> for RenderPassSecondaryBuffer<C
         unimplemented!()
     }
 }
-

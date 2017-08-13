@@ -2,7 +2,7 @@
 //!
 //! Suitable for use when PSO is always used with the same one slice.
 
-use {Backend, Resources, Slice, PipelineState, GraphicsEncoder, CommandBuffer };
+use {Backend, Slice, PipelineState, GraphicsEncoder};
 use super::PipelineData;
 
 /// Slice-PSO bundle.
@@ -17,8 +17,10 @@ pub struct Bundle<B: Backend, Data: PipelineData<B::Resources>> {
 
 impl<B: Backend, Data: PipelineData<B::Resources>> Bundle<B, Data> {
     /// Create new Bundle
-    pub fn new(slice: Slice<B::Resources>, pso: PipelineState<B::Resources, Data::Meta>, data: Data) -> Self
-    {
+    pub fn new(slice: Slice<B::Resources>,
+               pso: PipelineState<B::Resources, Data::Meta>,
+               data: Data)
+               -> Self {
         Bundle {
             slice: slice,
             pso: pso,

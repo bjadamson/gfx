@@ -32,12 +32,10 @@ pub struct CommandBuffer {
 impl CommandBuffer {
     fn end(&mut self) -> SubmitInfo {
         unsafe {
-            self.device.0.end_command_buffer(self.raw); // TODO: error handling
+            self.device.0.end_command_buffer(self.raw).unwrap(); // TODO: error handling
         }
 
-        SubmitInfo {
-            command_buffer: self.raw,
-        }
+        SubmitInfo { command_buffer: self.raw }
     }
 }
 
@@ -98,57 +96,75 @@ impl command::Buffer<Resources> for CommandBuffer {
         unimplemented!()
     }
 
-    fn copy_buffer(&mut self, src: (), dst: (),
-                   src_offset_bytes: usize, dst_offset_bytes: usize,
-                   size_bytes: usize) {
+    fn copy_buffer(&mut self,
+                   _src: (),
+                   _dst: (),
+                   _src_offset_bytes: usize,
+                   _dst_offset_bytes: usize,
+                   _size_bytes: usize) {
         unimplemented!()
     }
 
-    fn copy_buffer_to_texture(&mut self, src: (), src_offset_bytes: usize,
-                              dst: (),
-                              kind: tex::Kind,
-                              face: Option<tex::CubeFace>,
-                              img: tex::RawImageInfo) {
+    fn copy_buffer_to_texture(&mut self,
+                              _src: (),
+                              _src_offset_bytes: usize,
+                              _dst: (),
+                              _kind: tex::Kind,
+                              _face: Option<tex::CubeFace>,
+                              _img: tex::RawImageInfo) {
         unimplemented!()
     }
 
     fn copy_texture_to_buffer(&mut self,
-                              src: (),
-                              kind: tex::Kind,
-                              face: Option<tex::CubeFace>,
-                              img: tex::RawImageInfo,
-                              dst: (), dst_offset_bytes: usize) {
+                              _src: (),
+                              _kind: tex::Kind,
+                              _face: Option<tex::CubeFace>,
+                              _img: tex::RawImageInfo,
+                              _dst: (),
+                              _dst_offset_bytes: usize) {
         unimplemented!()
     }
 
-    fn update_buffer(&mut self, buf: (), data: &[u8], offset: usize) {
+    fn update_buffer(&mut self, _buf: (), _data: &[u8], _offset: usize) {
         unimplemented!()
     }
 
-    fn update_texture(&mut self, tex: (), kind: tex::Kind, face: Option<tex::CubeFace>,
-                      data: &[u8], image: tex::RawImageInfo) {
+    fn update_texture(&mut self,
+                      _tex: (),
+                      _kind: tex::Kind,
+                      _face: Option<tex::CubeFace>,
+                      _data: &[u8],
+                      _image: tex::RawImageInfo) {
         unimplemented!()
     }
 
-    fn generate_mipmap(&mut self, srv: ()) {
+    fn generate_mipmap(&mut self, _srv: ()) {
         unimplemented!()
     }
 
-    fn clear_color(&mut self, target: (), value: command::ClearColor) {
+    fn clear_color(&mut self, _target: (), _value: command::ClearColor) {
         unimplemented!()
     }
 
-    fn clear_depth_stencil(&mut self, target: (), depth: Option<target::Depth>,
-                           stencil: Option<target::Stencil>) {
+    fn clear_depth_stencil(&mut self,
+                           _target: (),
+                           _depth: Option<target::Depth>,
+                           _stencil: Option<target::Stencil>) {
         unimplemented!()
     }
 
-    fn call_draw(&mut self, start: VertexCount, count: VertexCount, instances: Option<command::InstanceParams>) {
+    fn call_draw(&mut self,
+                 _start: VertexCount,
+                 _count: VertexCount,
+                 _instances: Option<command::InstanceParams>) {
         unimplemented!();
     }
 
-    fn call_draw_indexed(&mut self, start: VertexCount, count: VertexCount,
-                         base: VertexCount, instances: Option<command::InstanceParams>) {
+    fn call_draw_indexed(&mut self,
+                         _start: VertexCount,
+                         _count: VertexCount,
+                         _base: VertexCount,
+                         _instances: Option<command::InstanceParams>) {
         unimplemented!()
     }
 }

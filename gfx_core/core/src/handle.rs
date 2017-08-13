@@ -28,17 +28,17 @@ pub struct RawBuffer<R: Resources>(Arc<buffer::Raw<R>>);
 
 impl<R: Resources> Deref for RawBuffer<R> {
     type Target = buffer::Raw<R>;
-    fn deref(&self) -> &Self::Target { &self.0 }
+    fn deref(&self) -> &Self::Target {
+        &self.0
+    }
 }
 
 /// Type-safe buffer handle
 #[derive(Derivative)]
 #[derivative(Clone, Debug, Eq, Hash, PartialEq)]
-pub struct Buffer<R: Resources, T>(
-    RawBuffer<R>,
-    #[derivative(Hash = "ignore", PartialEq = "ignore")]
-    PhantomData<T>
-);
+pub struct Buffer<R: Resources, T>(RawBuffer<R>,
+                                   #[derivative(Hash = "ignore", PartialEq = "ignore")]
+                                   PhantomData<T>);
 
 impl<R: Resources, T> Typed for Buffer<R, T> {
     type Raw = RawBuffer<R>;
@@ -46,12 +46,16 @@ impl<R: Resources, T> Typed for Buffer<R, T> {
         Buffer(handle, PhantomData)
     }
 
-    fn raw(&self) -> &RawBuffer<R> { &self.0 }
+    fn raw(&self) -> &RawBuffer<R> {
+        &self.0
+    }
 }
 
 impl<R: Resources, T> Buffer<R, T> {
     /// Get the associated information about the buffer
-    pub fn get_info(&self) -> &buffer::Info { self.raw().get_info() }
+    pub fn get_info(&self) -> &buffer::Info {
+        self.raw().get_info()
+    }
 
     /// Get the number of elements in the buffer.
     ///
@@ -71,7 +75,9 @@ pub struct Program<R: Resources>(Arc<shade::Program<R>>);
 
 impl<R: Resources> Deref for Program<R> {
     type Target = shade::Program<R>;
-    fn deref(&self) -> &Self::Target { &self.0 }
+    fn deref(&self) -> &Self::Target {
+        &self.0
+    }
 }
 
 /// Raw Pipeline State Handle
@@ -84,17 +90,17 @@ pub struct RawTexture<R: Resources>(Arc<texture::Raw<R>>);
 
 impl<R: Resources> Deref for RawTexture<R> {
     type Target = texture::Raw<R>;
-    fn deref(&self) -> &Self::Target { &self.0 }
+    fn deref(&self) -> &Self::Target {
+        &self.0
+    }
 }
 
 /// Typed texture object
 #[derive(Derivative)]
 #[derivative(Clone, Debug, Eq, Hash, PartialEq)]
-pub struct Texture<R: Resources, S>(
-    RawTexture<R>,
-    #[derivative(Hash = "ignore", PartialEq = "ignore")]
-    PhantomData<S>
-);
+pub struct Texture<R: Resources, S>(RawTexture<R>,
+                                    #[derivative(Hash = "ignore", PartialEq = "ignore")]
+                                    PhantomData<S>);
 
 impl<R: Resources, S> Typed for Texture<R, S> {
     type Raw = RawTexture<R>;
@@ -102,12 +108,16 @@ impl<R: Resources, S> Typed for Texture<R, S> {
         Texture(handle, PhantomData)
     }
 
-    fn raw(&self) -> &RawTexture<R> { &self.0 }
+    fn raw(&self) -> &RawTexture<R> {
+        &self.0
+    }
 }
 
 impl<R: Resources, S> Texture<R, S> {
     /// Get texture descriptor
-    pub fn get_info(&self) -> &texture::Info { self.raw().get_info() }
+    pub fn get_info(&self) -> &texture::Info {
+        self.raw().get_info()
+    }
 }
 
 #[derive(Clone, Debug, Eq, Hash, PartialEq)]
@@ -135,7 +145,9 @@ impl<R: Resources, T> Typed for ShaderResourceView<R, T> {
         ShaderResourceView(handle, PhantomData)
     }
 
-    fn raw(&self) -> &RawShaderResourceView<R> { &self.0 }
+    fn raw(&self) -> &RawShaderResourceView<R> {
+        &self.0
+    }
 }
 
 /// Raw Unordered Access View Handle
@@ -157,33 +169,47 @@ impl<R: Resources, T> Typed for UnorderedAccessView<R, T> {
         UnorderedAccessView(handle, PhantomData)
     }
 
-    fn raw(&self) -> &RawUnorderedAccessView<R> { &self.0 }
+    fn raw(&self) -> &RawUnorderedAccessView<R> {
+        &self.0
+    }
 }
 
 /// Raw RTV
 // TODO: Arc it all
 #[derive(Clone, Debug, Eq, Hash, PartialEq)]
-pub struct RawRenderTargetView<R: Resources>(Arc<R::RenderTargetView>, RawTexture<R>, texture::Dimensions);
+pub struct RawRenderTargetView<R: Resources>(Arc<R::RenderTargetView>,
+                                             RawTexture<R>,
+                                             texture::Dimensions);
 
 impl<R: Resources> RawRenderTargetView<R> {
     /// Get target dimensions
-    pub fn get_dimensions(&self) -> texture::Dimensions { self.2 }
+    pub fn get_dimensions(&self) -> texture::Dimensions {
+        self.2
+    }
 
     /// Get the associated texture
-    pub fn get_texture(&self) -> &RawTexture<R> { &self.1 }
+    pub fn get_texture(&self) -> &RawTexture<R> {
+        &self.1
+    }
 }
 
 /// Raw DSV
 // TODO: Arc it all
 #[derive(Clone, Debug, Eq, Hash, PartialEq)]
-pub struct RawDepthStencilView<R: Resources>(Arc<R::DepthStencilView>, RawTexture<R>, texture::Dimensions);
+pub struct RawDepthStencilView<R: Resources>(Arc<R::DepthStencilView>,
+                                             RawTexture<R>,
+                                             texture::Dimensions);
 
 impl<R: Resources> RawDepthStencilView<R> {
     /// Get target dimensions
-    pub fn get_dimensions(&self) -> texture::Dimensions { self.2 }
+    pub fn get_dimensions(&self) -> texture::Dimensions {
+        self.2
+    }
 
     /// Get the associated texture
-    pub fn get_texture(&self) -> &RawTexture<R> { &self.1 }
+    pub fn get_texture(&self) -> &RawTexture<R> {
+        &self.1
+    }
 }
 
 /// Typed RTV
@@ -197,7 +223,9 @@ pub struct RenderTargetView<R: Resources, T>(
 
 impl<R: Resources, T> RenderTargetView<R, T> {
     /// Get target dimensions
-    pub fn get_dimensions(&self) -> texture::Dimensions { self.raw().get_dimensions() }
+    pub fn get_dimensions(&self) -> texture::Dimensions {
+        self.raw().get_dimensions()
+    }
 }
 
 impl<R: Resources, T> Typed for RenderTargetView<R, T> {
@@ -206,7 +234,9 @@ impl<R: Resources, T> Typed for RenderTargetView<R, T> {
         RenderTargetView(h, PhantomData)
     }
 
-    fn raw(&self) -> &RawRenderTargetView<R> { &self.0 }
+    fn raw(&self) -> &RawRenderTargetView<R> {
+        &self.0
+    }
 }
 
 /// Typed DSV
@@ -231,7 +261,9 @@ impl<R: Resources, T> Typed for DepthStencilView<R, T> {
         DepthStencilView(h, PhantomData)
     }
 
-    fn raw(&self) -> &RawDepthStencilView<R> { &self.0 }
+    fn raw(&self) -> &RawDepthStencilView<R> {
+        &self.0
+    }
 }
 
 /// Sampler Handle
@@ -241,7 +273,9 @@ pub struct Sampler<R: Resources>(Arc<R::Sampler>, texture::SamplerInfo);
 
 impl<R: Resources> Sampler<R> {
     /// Get sampler info
-    pub fn get_info(&self) -> &texture::SamplerInfo { &self.1 }
+    pub fn get_info(&self) -> &texture::SamplerInfo {
+        &self.1
+    }
 }
 
 /// Fence Handle
@@ -259,37 +293,54 @@ pub struct Semaphore<R: Resources>(Arc<Mutex<R::Semaphore>>);
 #[allow(missing_docs)]
 #[derive(Debug)]
 pub struct Manager<R: Resources> {
-    buffers:       Vec<Arc<buffer::Raw<R>>>,
-    shaders:       Vec<Arc<R::Shader>>,
-    programs:      Vec<Arc<shade::Program<R>>>,
-    psos:          Vec<Arc<R::PipelineStateObject>>,
-    textures:      Vec<Arc<texture::Raw<R>>>,
-    srvs:          Vec<Arc<R::ShaderResourceView>>,
-    uavs:          Vec<Arc<R::UnorderedAccessView>>,
-    rtvs:          Vec<Arc<R::RenderTargetView>>,
-    dsvs:          Vec<Arc<R::DepthStencilView>>,
-    samplers:      Vec<Arc<R::Sampler>>,
-    fences:        Vec<Arc<Mutex<R::Fence>>>,
-    semaphores:    Vec<Arc<Mutex<R::Semaphore>>>,
+    buffers: Vec<Arc<buffer::Raw<R>>>,
+    shaders: Vec<Arc<R::Shader>>,
+    programs: Vec<Arc<shade::Program<R>>>,
+    psos: Vec<Arc<R::PipelineStateObject>>,
+    textures: Vec<Arc<texture::Raw<R>>>,
+    srvs: Vec<Arc<R::ShaderResourceView>>,
+    uavs: Vec<Arc<R::UnorderedAccessView>>,
+    rtvs: Vec<Arc<R::RenderTargetView>>,
+    dsvs: Vec<Arc<R::DepthStencilView>>,
+    samplers: Vec<Arc<R::Sampler>>,
+    fences: Vec<Arc<Mutex<R::Fence>>>,
+    semaphores: Vec<Arc<Mutex<R::Semaphore>>>,
 }
 
 /// A service trait to be used by the device implementation
 #[doc(hidden)]
 pub trait Producer<R: Resources> {
-    fn make_buffer(&mut self,
-                   R::Buffer,
-                   buffer::Info,
-                   Option<R::Mapping>) -> RawBuffer<R>;
+    fn make_buffer(&mut self, R::Buffer, buffer::Info, Option<R::Mapping>) -> RawBuffer<R>;
     fn make_shader(&mut self, R::Shader) -> Shader<R>;
     fn make_program(&mut self, R::Program, shade::ProgramInfo) -> Program<R>;
     fn make_pso(&mut self, R::PipelineStateObject, &Program<R>) -> RawPipelineState<R>;
     fn make_texture(&mut self, R::Texture, texture::Info) -> RawTexture<R>;
-    fn make_buffer_srv(&mut self, R::ShaderResourceView, &RawBuffer<R>) -> RawShaderResourceView<R>;
-    fn make_texture_srv(&mut self, R::ShaderResourceView, &RawTexture<R>) -> RawShaderResourceView<R>;
-    fn make_buffer_uav(&mut self, R::UnorderedAccessView, &RawBuffer<R>) -> RawUnorderedAccessView<R>;
-    fn make_texture_uav(&mut self, R::UnorderedAccessView, &RawTexture<R>) -> RawUnorderedAccessView<R>;
-    fn make_rtv(&mut self, R::RenderTargetView, &RawTexture<R>, texture::Dimensions) -> RawRenderTargetView<R>;
-    fn make_dsv(&mut self, R::DepthStencilView, &RawTexture<R>, texture::Dimensions) -> RawDepthStencilView<R>;
+    fn make_buffer_srv(&mut self,
+                       R::ShaderResourceView,
+                       &RawBuffer<R>)
+                       -> RawShaderResourceView<R>;
+    fn make_texture_srv(&mut self,
+                        R::ShaderResourceView,
+                        &RawTexture<R>)
+                        -> RawShaderResourceView<R>;
+    fn make_buffer_uav(&mut self,
+                       R::UnorderedAccessView,
+                       &RawBuffer<R>)
+                       -> RawUnorderedAccessView<R>;
+    fn make_texture_uav(&mut self,
+                        R::UnorderedAccessView,
+                        &RawTexture<R>)
+                        -> RawUnorderedAccessView<R>;
+    fn make_rtv(&mut self,
+                R::RenderTargetView,
+                &RawTexture<R>,
+                texture::Dimensions)
+                -> RawRenderTargetView<R>;
+    fn make_dsv(&mut self,
+                R::DepthStencilView,
+                &RawTexture<R>,
+                texture::Dimensions)
+                -> RawDepthStencilView<R>;
     fn make_sampler(&mut self, R::Sampler, texture::SamplerInfo) -> Sampler<R>;
     fn make_fence(&mut self, name: R::Fence) -> Fence<R>;
     fn make_semaphore(&mut self, R::Semaphore) -> Semaphore<R>;
@@ -297,26 +348,40 @@ pub trait Producer<R: Resources> {
     /// Walk through all the handles, keep ones that are reference elsewhere
     /// and call the provided delete function (resource-specific) for others
     fn clean_with<T,
-        A: Fn(&mut T, &mut buffer::Raw<R>),
-        B: Fn(&mut T, &mut R::Shader),
-        C: Fn(&mut T, &mut shade::Program<R>),
-        D: Fn(&mut T, &mut R::PipelineStateObject),
-        E: Fn(&mut T, &mut texture::Raw<R>),
-        F: Fn(&mut T, &mut R::ShaderResourceView),
-        G: Fn(&mut T, &mut R::UnorderedAccessView),
-        H: Fn(&mut T, &mut R::RenderTargetView),
-        I: Fn(&mut T, &mut R::DepthStencilView),
-        J: Fn(&mut T, &mut R::Sampler),
-        K: Fn(&mut T, &mut Mutex<R::Fence>),
-        L: Fn(&mut T, &mut Mutex<R::Semaphore>),
-    >(&mut self, &mut T, A, B, C, D, E, F, G, H, I, J, K, L);
+                  A: Fn(&mut T, &mut buffer::Raw<R>),
+                  B: Fn(&mut T, &mut R::Shader),
+                  C: Fn(&mut T, &mut shade::Program<R>),
+                  D: Fn(&mut T, &mut R::PipelineStateObject),
+                  E: Fn(&mut T, &mut texture::Raw<R>),
+                  F: Fn(&mut T, &mut R::ShaderResourceView),
+                  G: Fn(&mut T, &mut R::UnorderedAccessView),
+                  H: Fn(&mut T, &mut R::RenderTargetView),
+                  I: Fn(&mut T, &mut R::DepthStencilView),
+                  J: Fn(&mut T, &mut R::Sampler),
+                  K: Fn(&mut T, &mut Mutex<R::Fence>),
+                  L: Fn(&mut T, &mut Mutex<R::Semaphore>)>
+        (&mut self,
+         &mut T,
+         A,
+         B,
+         C,
+         D,
+         E,
+         F,
+         G,
+         H,
+         I,
+         J,
+         K,
+         L);
 }
 
 impl<R: Resources> Producer<R> for Manager<R> {
     fn make_buffer(&mut self,
                    res: R::Buffer,
                    info: buffer::Info,
-                   mapping: Option<R::Mapping>) -> RawBuffer<R> {
+                   mapping: Option<R::Mapping>)
+                   -> RawBuffer<R> {
         let r = Arc::new(buffer::Raw::new(res, info, mapping));
         self.buffers.push(r.clone());
         RawBuffer(r)
@@ -334,7 +399,10 @@ impl<R: Resources> Producer<R> for Manager<R> {
         Program(r)
     }
 
-    fn make_pso(&mut self, res: R::PipelineStateObject, program: &Program<R>) -> RawPipelineState<R> {
+    fn make_pso(&mut self,
+                res: R::PipelineStateObject,
+                program: &Program<R>)
+                -> RawPipelineState<R> {
         let r = Arc::new(res);
         self.psos.push(r.clone());
         RawPipelineState(r, program.clone())
@@ -346,37 +414,57 @@ impl<R: Resources> Producer<R> for Manager<R> {
         RawTexture(r)
     }
 
-    fn make_buffer_srv(&mut self, res: R::ShaderResourceView, buf: &RawBuffer<R>) -> RawShaderResourceView<R> {
+    fn make_buffer_srv(&mut self,
+                       res: R::ShaderResourceView,
+                       buf: &RawBuffer<R>)
+                       -> RawShaderResourceView<R> {
         let r = Arc::new(res);
         self.srvs.push(r.clone());
         RawShaderResourceView(r, ViewSource::Buffer(buf.clone()))
     }
 
-    fn make_texture_srv(&mut self, res: R::ShaderResourceView, tex: &RawTexture<R>) -> RawShaderResourceView<R> {
+    fn make_texture_srv(&mut self,
+                        res: R::ShaderResourceView,
+                        tex: &RawTexture<R>)
+                        -> RawShaderResourceView<R> {
         let r = Arc::new(res);
         self.srvs.push(r.clone());
         RawShaderResourceView(r, ViewSource::Texture(tex.clone()))
     }
 
-    fn make_buffer_uav(&mut self, res: R::UnorderedAccessView, buf: &RawBuffer<R>) -> RawUnorderedAccessView<R> {
+    fn make_buffer_uav(&mut self,
+                       res: R::UnorderedAccessView,
+                       buf: &RawBuffer<R>)
+                       -> RawUnorderedAccessView<R> {
         let r = Arc::new(res);
         self.uavs.push(r.clone());
         RawUnorderedAccessView(r, ViewSource::Buffer(buf.clone()))
     }
 
-    fn make_texture_uav(&mut self, res: R::UnorderedAccessView, tex: &RawTexture<R>) -> RawUnorderedAccessView<R> {
+    fn make_texture_uav(&mut self,
+                        res: R::UnorderedAccessView,
+                        tex: &RawTexture<R>)
+                        -> RawUnorderedAccessView<R> {
         let r = Arc::new(res);
         self.uavs.push(r.clone());
         RawUnorderedAccessView(r, ViewSource::Texture(tex.clone()))
     }
 
-    fn make_rtv(&mut self, res: R::RenderTargetView, tex: &RawTexture<R>, dim: texture::Dimensions) -> RawRenderTargetView<R> {
+    fn make_rtv(&mut self,
+                res: R::RenderTargetView,
+                tex: &RawTexture<R>,
+                dim: texture::Dimensions)
+                -> RawRenderTargetView<R> {
         let r = Arc::new(res);
         self.rtvs.push(r.clone());
         RawRenderTargetView(r, tex.clone(), dim)
     }
 
-    fn make_dsv(&mut self, res: R::DepthStencilView, tex: &RawTexture<R>, dim: texture::Dimensions) -> RawDepthStencilView<R> {
+    fn make_dsv(&mut self,
+                res: R::DepthStencilView,
+                tex: &RawTexture<R>,
+                dim: texture::Dimensions)
+                -> RawDepthStencilView<R> {
         let r = Arc::new(res);
         self.dsvs.push(r.clone());
         RawDepthStencilView(r, tex.clone(), dim)
@@ -401,19 +489,32 @@ impl<R: Resources> Producer<R> for Manager<R> {
     }
 
     fn clean_with<T,
-        A: Fn(&mut T, &mut buffer::Raw<R>),
-        B: Fn(&mut T, &mut R::Shader),
-        C: Fn(&mut T, &mut shade::Program<R>),
-        D: Fn(&mut T, &mut R::PipelineStateObject),
-        E: Fn(&mut T, &mut texture::Raw<R>),
-        F: Fn(&mut T, &mut R::ShaderResourceView),
-        G: Fn(&mut T, &mut R::UnorderedAccessView),
-        H: Fn(&mut T, &mut R::RenderTargetView),
-        I: Fn(&mut T, &mut R::DepthStencilView),
-        J: Fn(&mut T, &mut R::Sampler),
-        K: Fn(&mut T, &mut Mutex<R::Fence>),
-        L: Fn(&mut T, &mut Mutex<R::Semaphore>),
-    >(&mut self, param: &mut T, fa: A, fb: B, fc: C, fd: D, fe: E, ff: F, fg: G, fh: H, fi: I, fj: J, fk: K, fl: L) {
+                  A: Fn(&mut T, &mut buffer::Raw<R>),
+                  B: Fn(&mut T, &mut R::Shader),
+                  C: Fn(&mut T, &mut shade::Program<R>),
+                  D: Fn(&mut T, &mut R::PipelineStateObject),
+                  E: Fn(&mut T, &mut texture::Raw<R>),
+                  F: Fn(&mut T, &mut R::ShaderResourceView),
+                  G: Fn(&mut T, &mut R::UnorderedAccessView),
+                  H: Fn(&mut T, &mut R::RenderTargetView),
+                  I: Fn(&mut T, &mut R::DepthStencilView),
+                  J: Fn(&mut T, &mut R::Sampler),
+                  K: Fn(&mut T, &mut Mutex<R::Fence>),
+                  L: Fn(&mut T, &mut Mutex<R::Semaphore>)>
+        (&mut self,
+         param: &mut T,
+         fa: A,
+         fb: B,
+         fc: C,
+         fd: D,
+         fe: E,
+         ff: F,
+         fg: G,
+         fh: H,
+         fi: I,
+         fj: J,
+         fk: K,
+         fl: L) {
         fn clean_vec<X, Param, Fun>(param: &mut Param, vector: &mut Vec<Arc<X>>, fun: Fun)
             where Fun: Fn(&mut Param, &mut X)
         {
@@ -431,18 +532,18 @@ impl<R: Resources> Producer<R> for Manager<R> {
                 vector.swap_remove(*t);
             }
         }
-        clean_vec(param, &mut self.buffers,       fa);
-        clean_vec(param, &mut self.shaders,       fb);
-        clean_vec(param, &mut self.programs,      fc);
-        clean_vec(param, &mut self.psos,          fd);
-        clean_vec(param, &mut self.textures,      fe);
-        clean_vec(param, &mut self.srvs,          ff);
-        clean_vec(param, &mut self.uavs,          fg);
-        clean_vec(param, &mut self.rtvs,          fh);
-        clean_vec(param, &mut self.dsvs,          fi);
-        clean_vec(param, &mut self.samplers,      fj);
-        clean_vec(param, &mut self.fences,        fk);
-        clean_vec(param, &mut self.semaphores,    fl);
+        clean_vec(param, &mut self.buffers, fa);
+        clean_vec(param, &mut self.shaders, fb);
+        clean_vec(param, &mut self.programs, fc);
+        clean_vec(param, &mut self.psos, fd);
+        clean_vec(param, &mut self.textures, fe);
+        clean_vec(param, &mut self.srvs, ff);
+        clean_vec(param, &mut self.uavs, fg);
+        clean_vec(param, &mut self.rtvs, fh);
+        clean_vec(param, &mut self.dsvs, fi);
+        clean_vec(param, &mut self.samplers, fj);
+        clean_vec(param, &mut self.fences, fk);
+        clean_vec(param, &mut self.semaphores, fl);
     }
 }
 
@@ -481,32 +582,24 @@ impl<R: Resources> Manager<R> {
     }
     /// Extend with all references of another handle manager
     pub fn extend(&mut self, other: &Manager<R>) {
-        self.buffers   .extend(other.buffers   .iter().map(|h| h.clone()));
-        self.shaders   .extend(other.shaders   .iter().map(|h| h.clone()));
-        self.programs  .extend(other.programs  .iter().map(|h| h.clone()));
-        self.psos      .extend(other.psos      .iter().map(|h| h.clone()));
-        self.textures  .extend(other.textures  .iter().map(|h| h.clone()));
-        self.srvs      .extend(other.srvs      .iter().map(|h| h.clone()));
-        self.uavs      .extend(other.uavs      .iter().map(|h| h.clone()));
-        self.rtvs      .extend(other.rtvs      .iter().map(|h| h.clone()));
-        self.dsvs      .extend(other.dsvs      .iter().map(|h| h.clone()));
-        self.samplers  .extend(other.samplers  .iter().map(|h| h.clone()));
-        self.fences    .extend(other.fences    .iter().map(|h| h.clone()));
+        self.buffers.extend(other.buffers.iter().map(|h| h.clone()));
+        self.shaders.extend(other.shaders.iter().map(|h| h.clone()));
+        self.programs.extend(other.programs.iter().map(|h| h.clone()));
+        self.psos.extend(other.psos.iter().map(|h| h.clone()));
+        self.textures.extend(other.textures.iter().map(|h| h.clone()));
+        self.srvs.extend(other.srvs.iter().map(|h| h.clone()));
+        self.uavs.extend(other.uavs.iter().map(|h| h.clone()));
+        self.rtvs.extend(other.rtvs.iter().map(|h| h.clone()));
+        self.dsvs.extend(other.dsvs.iter().map(|h| h.clone()));
+        self.samplers.extend(other.samplers.iter().map(|h| h.clone()));
+        self.fences.extend(other.fences.iter().map(|h| h.clone()));
         self.semaphores.extend(other.semaphores.iter().map(|h| h.clone()));
     }
     /// Count the total number of referenced resources
     pub fn count(&self) -> usize {
-        self.buffers.len() +
-        self.shaders.len() +
-        self.programs.len() +
-        self.psos.len() +
-        self.textures.len() +
-        self.srvs.len() +
-        self.uavs.len() +
-        self.rtvs.len() +
-        self.dsvs.len() +
-        self.samplers.len() +
-        self.fences.len() +
+        self.buffers.len() + self.shaders.len() + self.programs.len() + self.psos.len() +
+        self.textures.len() + self.srvs.len() + self.uavs.len() +
+        self.rtvs.len() + self.dsvs.len() + self.samplers.len() + self.fences.len() +
         self.semaphores.len()
     }
     /// Reference a buffer
@@ -525,7 +618,9 @@ impl<R: Resources> Manager<R> {
         handle.resource()
     }
     /// Reference a pipeline state object
-    pub fn ref_pso<'a>(&mut self, handle: &'a RawPipelineState<R>) -> (&'a R::PipelineStateObject, &'a R::Program) {
+    pub fn ref_pso<'a>(&mut self,
+                       handle: &'a RawPipelineState<R>)
+                       -> (&'a R::PipelineStateObject, &'a R::Program) {
         self.psos.push(handle.0.clone());
         self.programs.push((handle.1).0.clone());
         (&handle.0, handle.1.resource())
@@ -536,12 +631,16 @@ impl<R: Resources> Manager<R> {
         handle.resource()
     }
     /// Reference a shader resource view
-    pub fn ref_srv<'a>(&mut self, handle: &'a RawShaderResourceView<R>) -> &'a R::ShaderResourceView {
+    pub fn ref_srv<'a>(&mut self,
+                       handle: &'a RawShaderResourceView<R>)
+                       -> &'a R::ShaderResourceView {
         self.srvs.push(handle.0.clone());
         &handle.0
     }
     /// Reference an unordered access view
-    pub fn ref_uav<'a>(&mut self, handle: &'a RawUnorderedAccessView<R>) -> &'a R::UnorderedAccessView {
+    pub fn ref_uav<'a>(&mut self,
+                       handle: &'a RawUnorderedAccessView<R>)
+                       -> &'a R::UnorderedAccessView {
         self.uavs.push(handle.0.clone());
         &handle.0
     }

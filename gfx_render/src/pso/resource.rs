@@ -28,11 +28,9 @@ use super::{DataLink, DataBind, RawDataSet, AccessInfo};
 /// - data: `ShaderResourceView<T>`
 #[derive(Derivative)]
 #[derivative(Clone, Debug, Eq, Hash, PartialEq)]
-pub struct ShaderResource<T>(
-    RawShaderResource,
-    #[derivative(Hash = "ignore", PartialEq = "ignore")]
-    PhantomData<T>
-);
+pub struct ShaderResource<T>(RawShaderResource,
+                             #[derivative(Hash = "ignore", PartialEq = "ignore")]
+                             PhantomData<T>);
 
 /// Raw (untyped) shader resource (SRV).
 ///
@@ -49,11 +47,9 @@ pub struct RawShaderResource(Option<(ResourceViewSlot, shade::Usage)>);
 /// - data: `UnorderedAccessView<T>`
 #[derive(Derivative)]
 #[derivative(Clone, Debug, Eq, Hash, PartialEq)]
-pub struct UnorderedAccess<T>(
-    Option<(UnorderedViewSlot, shade::Usage)>,
-    #[derivative(Hash = "ignore", PartialEq = "ignore")]
-    PhantomData<T>
-);
+pub struct UnorderedAccess<T>(Option<(UnorderedViewSlot, shade::Usage)>,
+                              #[derivative(Hash = "ignore", PartialEq = "ignore")]
+                              PhantomData<T>);
 
 /// Sampler component.
 ///
@@ -80,7 +76,9 @@ impl<'a, T> DataLink<'a> for ShaderResource<T> {
     fn is_active(&self) -> bool {
         self.0.is_active()
     }
-    fn link_resource_view(&mut self, var: &shade::TextureVar, init: &Self::Init)
+    fn link_resource_view(&mut self,
+                          var: &shade::TextureVar,
+                          init: &Self::Init)
                           -> Option<Result<pso::ResourceViewDesc, Format>> {
         self.0.link_resource_view(var, init)
     }
@@ -105,12 +103,14 @@ impl<'a> DataLink<'a> for RawShaderResource {
     fn is_active(&self) -> bool {
         self.0.is_some()
     }
-    fn link_resource_view(&mut self, var: &shade::TextureVar, init: &Self::Init)
+    fn link_resource_view(&mut self,
+                          var: &shade::TextureVar,
+                          init: &Self::Init)
                           -> Option<Result<pso::ResourceViewDesc, Format>> {
         if *init == var.name {
             self.0 = Some((var.slot, var.usage));
             Some(Ok(var.usage)) //TODO: check format
-        }else {
+        } else {
             None
         }
     }
@@ -139,12 +139,14 @@ impl<'a, T> DataLink<'a> for UnorderedAccess<T> {
     fn is_active(&self) -> bool {
         self.0.is_some()
     }
-    fn link_unordered_view(&mut self, var: &shade::UnorderedVar, init: &Self::Init)
+    fn link_unordered_view(&mut self,
+                           var: &shade::UnorderedVar,
+                           init: &Self::Init)
                            -> Option<Result<pso::UnorderedViewDesc, Format>> {
         if *init == var.name {
             self.0 = Some((var.slot, var.usage));
             Some(Ok(var.usage)) //TODO: check format
-        }else {
+        } else {
             None
         }
     }
@@ -159,7 +161,7 @@ impl<R: Resources, T> DataBind<R> for UnorderedAccess<T> {
                _: &mut AccessInfo<R>) {
         // TODO: register buffer view source access
         if let Some((slot, usage)) = self.0 {
-            let view =  man.ref_uav(data.raw()).clone();
+            let view = man.ref_uav(data.raw()).clone();
             out.unordered_views.push(pso::UnorderedViewParam(view, usage, slot));
         }
     }
@@ -173,12 +175,14 @@ impl<'a> DataLink<'a> for Sampler {
     fn is_active(&self) -> bool {
         self.0.is_some()
     }
-    fn link_sampler(&mut self, var: &shade::SamplerVar, init: &Self::Init)
+    fn link_sampler(&mut self,
+                    var: &shade::SamplerVar,
+                    init: &Self::Init)
                     -> Option<pso::SamplerDesc> {
         if *init == var.name {
             self.0 = Some((var.slot, var.usage));
             Some(var.usage)
-        }else {
+        } else {
             None
         }
     }
@@ -206,11 +210,16 @@ impl<'a, T> DataLink<'a> for TextureSampler<T> {
     fn is_active(&self) -> bool {
         self.0.is_active()
     }
-    fn link_resource_view(&mut self, var: &shade::TextureVar, init: &Self::Init)
+    fn link_resource_view(&mut self,
+                          var: &shade::TextureVar,
+                          init: &Self::Init)
                           -> Option<Result<pso::ResourceViewDesc, Format>> {
         self.0.link_resource_view(var, init)
     }
-    fn link_sampler(&mut self, var: &shade::SamplerVar, init: &Self::Init) -> Option<pso::SamplerDesc> {
+    fn link_sampler(&mut self,
+                    var: &shade::SamplerVar,
+                    init: &Self::Init)
+                    -> Option<pso::SamplerDesc> {
         self.1.link_sampler(var, init)
     }
 }

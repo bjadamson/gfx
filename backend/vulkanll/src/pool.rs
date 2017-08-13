@@ -19,10 +19,11 @@ use ash::vk;
 use ash::version::DeviceV1_0;
 
 use core::{self, pool};
-use core::command::{Encoder};
-use core::{CommandPool, GeneralQueue, GraphicsQueue, ComputeQueue, TransferQueue};
+use core::command::Encoder;
+use core::{GeneralQueue, GraphicsQueue, ComputeQueue, TransferQueue};
 use command::CommandBuffer;
-use native::{self, GeneralCommandBuffer, GraphicsCommandBuffer, ComputeCommandBuffer, TransferCommandBuffer, SubpassCommandBuffer};
+use native::{GeneralCommandBuffer, GraphicsCommandBuffer, ComputeCommandBuffer,
+             TransferCommandBuffer, SubpassCommandBuffer};
 use {CommandQueue, DeviceInner};
 
 macro_rules! impl_pool {
@@ -55,7 +56,7 @@ macro_rules! impl_pool {
                 };
 
                 unsafe {
-                    self.device.0.begin_command_buffer(buffer.0.inner, &info); // TODO: error handling
+                    self.device.0.begin_command_buffer(buffer.0.inner, &info).unwrap(); // TODO: error handling
                     Encoder::new(buffer)
                 }
             }
@@ -71,7 +72,7 @@ macro_rules! impl_pool {
                 }
             }
 
-            fn reserve(&mut self, additional: usize) {
+            fn reserve(&mut self, _additional: usize) {
                 unimplemented!()
             }
         }

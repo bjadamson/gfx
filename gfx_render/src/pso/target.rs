@@ -27,11 +27,9 @@ use super::{DataLink, DataBind, RawDataSet, AccessInfo};
 /// - data: `RenderTargetView<T>`
 #[derive(Derivative)]
 #[derivative(Clone, Debug, Eq, Hash, PartialEq)]
-pub struct RenderTarget<T>(
-    Option<ColorSlot>,
-    #[derivative(Hash = "ignore", PartialEq = "ignore")]
-    PhantomData<T>
-);
+pub struct RenderTarget<T>(Option<ColorSlot>,
+                           #[derivative(Hash = "ignore", PartialEq = "ignore")]
+                           PhantomData<T>);
 
 /// Render target component with active blending mode.
 ///
@@ -39,11 +37,9 @@ pub struct RenderTarget<T>(
 /// - data: `RenderTargetView<T>`
 #[derive(Derivative)]
 #[derivative(Clone, Debug, Eq, Hash, PartialEq)]
-pub struct BlendTarget<T>(
-    RawRenderTarget,
-    #[derivative(Hash = "ignore", PartialEq = "ignore")]
-    PhantomData<T>
-);
+pub struct BlendTarget<T>(RawRenderTarget,
+                          #[derivative(Hash = "ignore", PartialEq = "ignore")]
+                          PhantomData<T>);
 
 /// Raw (untyped) render target component with optional blending.
 ///
@@ -58,10 +54,8 @@ pub struct RawRenderTarget(Option<ColorSlot>);
 /// - data: `DepthStencilView<T>`
 #[derive(Derivative)]
 #[derivative(Clone, Debug, Eq, Hash, PartialEq)]
-pub struct DepthTarget<T>(
-    #[derivative(Hash = "ignore", PartialEq = "ignore")]
-    PhantomData<T>
-);
+pub struct DepthTarget<T>(#[derivative(Hash = "ignore", PartialEq = "ignore")]
+                          PhantomData<T>);
 
 /// Stencil target component.
 ///
@@ -69,10 +63,8 @@ pub struct DepthTarget<T>(
 /// - data: (`DepthStencilView<T>`, `(front, back)` = stencil reference values)
 #[derive(Derivative)]
 #[derivative(Clone, Debug, Eq, Hash, PartialEq)]
-pub struct StencilTarget<T>(
-    #[derivative(Hash = "ignore", PartialEq = "ignore")]
-    PhantomData<T>
-);
+pub struct StencilTarget<T>(#[derivative(Hash = "ignore", PartialEq = "ignore")]
+                            PhantomData<T>);
 
 /// Depth + stencil target component.
 ///
@@ -80,10 +72,8 @@ pub struct StencilTarget<T>(
 /// - data: (`DepthStencilView<T>`, `(front, back)` = stencil reference values)
 #[derive(Derivative)]
 #[derivative(Clone, Debug, Eq, Hash, PartialEq)]
-pub struct DepthStencilTarget<T>(
-    #[derivative(Hash = "ignore", PartialEq = "ignore")]
-    PhantomData<T>
-);
+pub struct DepthStencilTarget<T>(#[derivative(Hash = "ignore", PartialEq = "ignore")]
+                                 PhantomData<T>);
 
 /// Scissor component. Sets up the scissor test for rendering.
 ///
@@ -107,8 +97,10 @@ impl<'a, T: format::RenderFormat> DataLink<'a> for RenderTarget<T> {
     fn is_active(&self) -> bool {
         self.0.is_some()
     }
-    fn link_output(&mut self, out: &OutputVar, init: &Self::Init) ->
-                   Option<Result<pso::ColorTargetDesc, format::Format>> {
+    fn link_output(&mut self,
+                   out: &OutputVar,
+                   init: &Self::Init)
+                   -> Option<Result<pso::ColorTargetDesc, format::Format>> {
         if out.name.is_empty() || &out.name == init {
             self.0 = Some(out.slot);
             let desc = (T::get_format(), state::MASK_ALL.into());
@@ -141,8 +133,10 @@ impl<'a, T: format::BlendFormat> DataLink<'a> for BlendTarget<T> {
     fn is_active(&self) -> bool {
         self.0.is_active()
     }
-    fn link_output(&mut self, out: &OutputVar, init: &Self::Init) ->
-                   Option<Result<pso::ColorTargetDesc, format::Format>> {
+    fn link_output(&mut self,
+                   out: &OutputVar,
+                   init: &Self::Init)
+                   -> Option<Result<pso::ColorTargetDesc, format::Format>> {
         self.0.link_output(out, &(init.0, T::get_format(), init.1, Some(init.2)))
     }
 }
@@ -166,17 +160,20 @@ impl<'a> DataLink<'a> for RawRenderTarget {
     fn is_active(&self) -> bool {
         self.0.is_some()
     }
-    fn link_output(&mut self, out: &OutputVar, init: &Self::Init) ->
-                   Option<Result<pso::ColorTargetDesc, format::Format>> {
+    fn link_output(&mut self,
+                   out: &OutputVar,
+                   init: &Self::Init)
+                   -> Option<Result<pso::ColorTargetDesc, format::Format>> {
         if out.name.is_empty() || &out.name == init.0 {
             self.0 = Some(out.slot);
-            let desc = (init.1, pso::ColorInfo {
+            let desc = (init.1,
+                        pso::ColorInfo {
                 mask: init.2,
                 color: init.3.map(|b| b.color),
                 alpha: init.3.map(|b| b.alpha),
             });
             Some(Ok(desc))
-        }else {
+        } else {
             None
         }
     }
@@ -198,8 +195,12 @@ impl<R: Resources> DataBind<R> for RawRenderTarget {
 
 impl<'a, T: format::DepthFormat> DataLink<'a> for DepthTarget<T> {
     type Init = state::Depth;
-    fn new() -> Self { DepthTarget(PhantomData) }
-    fn is_active(&self) -> bool { true }
+    fn new() -> Self {
+        DepthTarget(PhantomData)
+    }
+    fn is_active(&self) -> bool {
+        true
+    }
     fn link_depth_stencil(&mut self, init: &Self::Init) -> Option<pso::DepthStencilDesc> {
         Some((T::get_format(), (*init).into()))
     }
@@ -219,8 +220,12 @@ impl<R: Resources, T> DataBind<R> for DepthTarget<T> {
 
 impl<'a, T: format::StencilFormat> DataLink<'a> for StencilTarget<T> {
     type Init = state::Stencil;
-    fn new() -> Self { StencilTarget(PhantomData) }
-    fn is_active(&self) -> bool { true }
+    fn new() -> Self {
+        StencilTarget(PhantomData)
+    }
+    fn is_active(&self) -> bool {
+        true
+    }
     fn link_depth_stencil(&mut self, init: &Self::Init) -> Option<pso::DepthStencilDesc> {
         Some((T::get_format(), (*init).into()))
     }
@@ -241,8 +246,12 @@ impl<R: Resources, T> DataBind<R> for StencilTarget<T> {
 
 impl<'a, T: format::DepthStencilFormat> DataLink<'a> for DepthStencilTarget<T> {
     type Init = (state::Depth, state::Stencil);
-    fn new() -> Self { DepthStencilTarget(PhantomData) }
-    fn is_active(&self) -> bool { true }
+    fn new() -> Self {
+        DepthStencilTarget(PhantomData)
+    }
+    fn is_active(&self) -> bool {
+        true
+    }
     fn link_depth_stencil(&mut self, init: &Self::Init) -> Option<pso::DepthStencilDesc> {
         Some((T::get_format(), (*init).into()))
     }
@@ -264,9 +273,16 @@ impl<R: Resources, T> DataBind<R> for DepthStencilTarget<T> {
 
 impl<'a> DataLink<'a> for Scissor {
     type Init = ();
-    fn new() -> Self { Scissor(false) }
-    fn is_active(&self) -> bool { self.0 }
-    fn link_scissor(&mut self) -> bool { self.0 = true; true }
+    fn new() -> Self {
+        Scissor(false)
+    }
+    fn is_active(&self) -> bool {
+        self.0
+    }
+    fn link_scissor(&mut self) -> bool {
+        self.0 = true;
+        true
+    }
 }
 
 impl<R: Resources> DataBind<R> for Scissor {
@@ -282,8 +298,12 @@ impl<R: Resources> DataBind<R> for Scissor {
 
 impl<'a> DataLink<'a> for BlendRef {
     type Init = ();
-    fn new() -> Self { BlendRef }
-    fn is_active(&self) -> bool { true }
+    fn new() -> Self {
+        BlendRef
+    }
+    fn is_active(&self) -> bool {
+        true
+    }
 }
 
 impl<R: Resources> DataBind<R> for BlendRef {

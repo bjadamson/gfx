@@ -24,15 +24,16 @@ extern crate gfx_device_metalll as back;
 extern crate winit;
 extern crate image;
 
-use gfx_corell::{buffer, command, format, pass, pso, shade, state, target,
-    Device, CommandPool, GraphicsCommandPool,
-    GraphicsCommandBuffer, ProcessingCommandBuffer, TransferCommandBuffer, PrimaryCommandBuffer,
-    Primitive, Instance, Adapter, Surface, SwapChain, QueueFamily, QueueSubmit, Factory, SubPass, FrameSync};
+use gfx_corell::{buffer, command, format, pass, pso, shade, state, target, Device, CommandPool,
+                 GraphicsCommandPool, GraphicsCommandBuffer, ProcessingCommandBuffer,
+                 TransferCommandBuffer, PrimaryCommandBuffer, Primitive, Instance, Adapter,
+                 Surface, SwapChain, QueueFamily, QueueSubmit, Factory, SubPass, FrameSync};
 use gfx_corell::format::Formatted;
-use gfx_corell::memory::{self, ImageBarrier, ImageStateSrc, ImageStateDst, ImageLayout, ImageAccess};
+use gfx_corell::memory::{self, ImageBarrier, ImageStateSrc, ImageStateDst, ImageLayout,
+                         ImageAccess};
 use gfx_corell::factory::{DescriptorHeapType, DescriptorPoolDesc, DescriptorType,
-    DescriptorSetLayoutBinding, DescriptorSetWrite, DescriptorWrite,
-    ResourceHeapType, WaitFor};
+                          DescriptorSetLayoutBinding, DescriptorSetWrite, DescriptorWrite,
+                          ResourceHeapType, WaitFor};
 
 use std::io::Cursor;
 use gfx_corell::image as i;
@@ -50,15 +51,31 @@ struct Vertex {
     a_Uv: [f32; 2],
 }
 
-const TRIANGLE: [Vertex; 6] = [
-    Vertex { a_Pos: [ -0.5, 0.33 ], a_Uv: [0.0, 1.0] },
-    Vertex { a_Pos: [  0.5, 0.33 ], a_Uv: [1.0, 1.0] },
-    Vertex { a_Pos: [  0.5,-0.33 ], a_Uv: [1.0, 0.0] },
+const TRIANGLE: [Vertex; 6] = [Vertex {
+                                   a_Pos: [-0.5, 0.33],
+                                   a_Uv: [0.0, 1.0],
+                               },
+                               Vertex {
+                                   a_Pos: [0.5, 0.33],
+                                   a_Uv: [1.0, 1.0],
+                               },
+                               Vertex {
+                                   a_Pos: [0.5, -0.33],
+                                   a_Uv: [1.0, 0.0],
+                               },
 
-    Vertex { a_Pos: [ -0.5, 0.33 ], a_Uv: [0.0, 1.0] },
-    Vertex { a_Pos: [  0.5,-0.33 ], a_Uv: [1.0, 0.0] },
-    Vertex { a_Pos: [ -0.5,-0.33 ], a_Uv: [0.0, 0.0] },
-];
+                               Vertex {
+                                   a_Pos: [-0.5, 0.33],
+                                   a_Uv: [0.0, 1.0],
+                               },
+                               Vertex {
+                                   a_Pos: [0.5, -0.33],
+                                   a_Uv: [1.0, 0.0],
+                               },
+                               Vertex {
+                                   a_Pos: [-0.5, -0.33],
+                                   a_Uv: [0.0, 0.0],
+                               }];
 
 #[cfg(any(feature = "vulkan", target_os = "windows", feature = "metal"))]
 fn main() {
@@ -83,36 +100,39 @@ fn main() {
     let adapter = &adapters[0];
     let surface = instance.create_surface(&window);
 
-    let queue_descs = adapter.get_queue_families().map(|family| (family, family.num_queues()) );
+    let queue_descs = adapter.get_queue_families().map(|family| (family, family.num_queues()));
 
 
 
     // Build a new device and associated command queues
-    let Device { mut factory, mut general_queues, heap_types, caps, .. } = adapter.open(queue_descs);
+    let Device { mut factory, mut general_queues, heap_types, caps, .. } =
+        adapter.open(queue_descs);
     let mut swap_chain = surface.build_swapchain::<ColorFormat>(&general_queues[0]);
 
     // Setup renderpass and pipeline
     // dx12 runtime shader compilation
     #[cfg(all(target_os = "windows", not(feature = "vulkan")))]
-    let shader_lib = factory.create_shader_library_from_source(&[
-            (VS, shade::Stage::Vertex, include_bytes!("shader/triangle.hlsl")),
-            (PS, shade::Stage::Pixel, include_bytes!("shader/triangle.hlsl")),
-        ]).expect("Error on creating shader lib");
+    let shader_lib = factory.create_shader_library_from_source(&[(VS,
+                                              shade::Stage::Vertex,
+                                              include_bytes!("shader/triangle.hlsl")),
+                                             (PS,
+                                              shade::Stage::Pixel,
+                                              include_bytes!("shader/triangle.hlsl"))])
+        .expect("Error on creating shader lib");
     #[cfg(feature = "vulkan")]
-    let shader_lib = factory.create_shader_library(&[
-            (VS, include_bytes!("data/vs_main.spv")),
-            (PS, include_bytes!("data/ps_main.spv")),
-        ]).expect("Error on creating shader lib");
+    let shader_lib = factory.create_shader_library(&[(VS, include_bytes!("data/vs_main.spv")),
+                                 (PS, include_bytes!("data/ps_main.spv"))])
+        .expect("Error on creating shader lib");
     #[cfg(all(feature = "metal", feature = "metal_argument_buffer"))]
-    let shader_lib = factory.create_shader_library_from_source(
-            include_str!("shader/triangle_indirect.metal"),
-            back::LanguageVersion::new(2, 0),
-        ).expect("Error on creating shader lib");
+    let shader_lib =
+        factory.create_shader_library_from_source(include_str!("shader/triangle_indirect.metal"),
+                                               back::LanguageVersion::new(2, 0))
+            .expect("Error on creating shader lib");
     #[cfg(all(feature = "metal", not(feature = "metal_argument_buffer")))]
-    let shader_lib = factory.create_shader_library_from_source(
-            include_str!("shader/triangle.metal"),
-            back::LanguageVersion::new(1, 1),
-        ).expect("Error on creating shader lib");
+    let shader_lib =
+        factory.create_shader_library_from_source(include_str!("shader/triangle.metal"),
+                                               back::LanguageVersion::new(1, 1))
+            .expect("Error on creating shader lib");
 
     let shader_entries = pso::GraphicsShaderSet {
         vertex_shader: VS,
@@ -122,25 +142,19 @@ fn main() {
         pixel_shader: Some(PS),
     };
 
-    let set0_layout = factory.create_descriptor_set_layout(&[
-            DescriptorSetLayoutBinding {
-                binding: 0,
-                ty: DescriptorType::SampledImage,
-                count: 1,
-                stage_flags: shade::STAGE_PIXEL,
-            }
-        ],
-    );
+    let set0_layout = factory.create_descriptor_set_layout(&[DescriptorSetLayoutBinding {
+                                                                 binding: 0,
+                                                                 ty: DescriptorType::SampledImage,
+                                                                 count: 1,
+                                                                 stage_flags: shade::STAGE_PIXEL,
+                                                             }]);
 
-    let set1_layout = factory.create_descriptor_set_layout(&[
-            DescriptorSetLayoutBinding {
-                binding: 0,
-                ty: DescriptorType::Sampler,
-                count: 1,
-                stage_flags: shade::STAGE_PIXEL,
-            }
-        ],
-    );
+    let set1_layout = factory.create_descriptor_set_layout(&[DescriptorSetLayoutBinding {
+                                                                 binding: 0,
+                                                                 ty: DescriptorType::Sampler,
+                                                                 count: 1,
+                                                                 stage_flags: shade::STAGE_PIXEL,
+                                                             }]);
 
     let pipeline_layout = factory.create_pipeline_layout(&[&set0_layout, &set1_layout]);
 
@@ -172,14 +186,12 @@ fn main() {
     };
 
     //
-    let mut pipeline_desc = pso::GraphicsPipelineDesc::new(
-        Primitive::TriangleList,
-        state::Rasterizer::new_fill(),
-        shader_entries);
+    let mut pipeline_desc = pso::GraphicsPipelineDesc::new(Primitive::TriangleList,
+                                                           state::Rasterizer::new_fill(),
+                                                           shader_entries);
 
-    pipeline_desc.color_targets[0] = Some((
-        ColorFormat::get_format(),
-        state::Blend {
+    pipeline_desc.color_targets[0] = Some((ColorFormat::get_format(),
+                                           state::Blend {
             color: state::BlendChannel {
                 equation: state::Equation::Add,
                 source: state::Factor::ZeroPlus(state::BlendValue::SourceAlpha),
@@ -190,8 +202,8 @@ fn main() {
                 source: state::Factor::One,
                 destination: state::Factor::One,
             },
-        }.into()
-    ));
+        }
+        .into()));
     pipeline_desc.vertex_buffers.push(pso::VertexBufferDesc {
         stride: std::mem::size_of::<Vertex>() as u8,
         rate: 0,
@@ -207,47 +219,61 @@ fn main() {
     }));
 
     //
-    let pipelines = factory.create_graphics_pipelines(&[
-        (&shader_lib, &pipeline_layout, SubPass { index: 0, main_pass: &render_pass }, &pipeline_desc)
-    ]);
+    let pipelines = factory.create_graphics_pipelines(&[(&shader_lib,
+                                                         &pipeline_layout,
+                                                         SubPass {
+                                                            index: 0,
+                                                            main_pass: &render_pass,
+                                                        },
+                                                         &pipeline_desc)]);
 
     println!("pipelines: {:?}", pipelines);
 
     // Descriptors
     let heap_srv = factory.create_descriptor_heap(DescriptorHeapType::SrvCbvUav, 16);
-    let mut srv_pool = factory.create_descriptor_set_pool(
-        &heap_srv,
-        1, // sets
-        0, // offset
-        &[DescriptorPoolDesc { ty: DescriptorType::SampledImage, count: 1 }],
-    );
+    let mut srv_pool = factory.create_descriptor_set_pool(&heap_srv,
+                                                          1, // sets
+                                                          0, // offset
+                                                          &[DescriptorPoolDesc {
+                                                                ty: DescriptorType::SampledImage,
+                                                                count: 1,
+                                                            }]);
 
     let set0 = factory.create_descriptor_sets(&mut srv_pool, &[&set0_layout]);
 
     let heap_sampler = factory.create_descriptor_heap(DescriptorHeapType::Sampler, 16);
-    let mut sampler_pool = factory.create_descriptor_set_pool(
-        &heap_sampler,
-        1, // sets
-        0, // offset
-        &[DescriptorPoolDesc { ty: DescriptorType::Sampler, count: 1 }],
-    );
+    let mut sampler_pool = factory.create_descriptor_set_pool(&heap_sampler,
+                                                              1, // sets
+                                                              0, // offset
+                                                              &[DescriptorPoolDesc {
+                                                                    ty: DescriptorType::Sampler,
+                                                                    count: 1,
+                                                                }]);
 
     let set1 = factory.create_descriptor_sets(&mut sampler_pool, &[&set1_layout]);
 
     // Framebuffer and render target creation
-    let frame_rtvs = swap_chain.get_images().iter().map(|image| {
-        factory.view_image_as_render_target(&image, ColorFormat::get_format()).unwrap()
-    }).collect::<Vec<_>>();
-
-    let framebuffers = frame_rtvs.iter().map(|frame_rtv| {
-        factory.create_framebuffer(&render_pass, &[&frame_rtv], &[], pixel_width as u32, pixel_height as u32, 1)
-    }).collect::<Vec<_>>();
-
-
-    let upload_heap =
-        heap_types.iter().find(|&&heap_type| {
-            heap_type.properties.contains(memory::CPU_VISIBLE | memory::COHERENT)
+    let frame_rtvs = swap_chain.get_images()
+        .iter()
+        .map(|image| {
+            factory.view_image_as_render_target(&image, ColorFormat::get_format()).unwrap()
         })
+        .collect::<Vec<_>>();
+
+    let framebuffers = frame_rtvs.iter()
+        .map(|frame_rtv| {
+            factory.create_framebuffer(&render_pass,
+                                       &[&frame_rtv],
+                                       &[],
+                                       pixel_width as u32,
+                                       pixel_height as u32,
+                                       1)
+        })
+        .collect::<Vec<_>>();
+
+
+    let upload_heap = heap_types.iter()
+        .find(|&&heap_type| heap_type.properties.contains(memory::CPU_VISIBLE | memory::COHERENT))
         .unwrap();
 
     // Buffer allocations
@@ -282,36 +308,47 @@ fn main() {
     let upload_size = (height * row_pitch) as u64;
     println!("upload row pitch {}, total size {}", row_pitch, upload_size);
 
-    let image_upload_heap = factory.create_heap(upload_heap, ResourceHeapType::Buffers, upload_size).unwrap();
+    let image_upload_heap = factory.create_heap(upload_heap, ResourceHeapType::Buffers, upload_size)
+        .unwrap();
     let image_upload_buffer = {
-        let buffer = factory.create_buffer(upload_size, image_stride as u64, buffer::TRANSFER_SRC).unwrap();
+        let buffer = factory.create_buffer(upload_size, image_stride as u64, buffer::TRANSFER_SRC)
+            .unwrap();
         factory.bind_buffer_memory(&image_upload_heap, 0, buffer).unwrap()
     };
 
     // copy image data into staging buffer
     {
-        let mut mapping = factory.write_mapping::<u8>(&image_upload_buffer, 0, upload_size).unwrap();
-        for y in 0 .. height as usize {
-            let row = &(*img)[y*(width as usize)*image_stride .. (y+1)*(width as usize)*image_stride];
+        let mut mapping = factory.write_mapping::<u8>(&image_upload_buffer, 0, upload_size)
+            .unwrap();
+        for y in 0..height as usize {
+            let row = &(*img)[y * (width as usize) * image_stride..(y + 1) * (width as usize) *
+                                                                   image_stride];
             let dest_base = y * row_pitch as usize;
-            mapping[dest_base .. dest_base + row.len()].copy_from_slice(row);
+            mapping[dest_base..dest_base + row.len()].copy_from_slice(row);
         }
     }
 
-    let image = factory.create_image(kind, 1, gfx_corell::format::Srgba8::get_format(), i::TRANSFER_DST | i::SAMPLED).unwrap(); // TODO: usage
+    let image = factory.create_image(kind,
+                      1,
+                      gfx_corell::format::Srgba8::get_format(),
+                      i::TRANSFER_DST | i::SAMPLED)
+        .unwrap(); // TODO: usage
     println!("{:?}", image);
     let image_req = factory.get_image_requirements(&image);
 
-    let device_heap = heap_types.iter().find(|&&heap_type| heap_type.properties.contains(memory::DEVICE_LOCAL)).unwrap();
-    let image_heap = factory.create_heap(device_heap, ResourceHeapType::Images, image_req.size).unwrap();
+    let device_heap = heap_types.iter()
+        .find(|&&heap_type| heap_type.properties.contains(memory::DEVICE_LOCAL))
+        .unwrap();
+    let image_heap = factory.create_heap(device_heap, ResourceHeapType::Images, image_req.size)
+        .unwrap();
 
     let image_logo = factory.bind_image_memory(&image_heap, 0, image).unwrap();
-    let image_srv = factory.view_image_as_shader_resource(&image_logo, gfx_corell::format::Srgba8::get_format()).unwrap();
+    let image_srv =
+        factory.view_image_as_shader_resource(&image_logo, gfx_corell::format::Srgba8::get_format())
+            .unwrap();
 
-    let sampler = factory.create_sampler(i::SamplerInfo::new(
-                                            i::FilterMethod::Bilinear,
-                                            i::WrapMode::Clamp,
-                                        ));
+    let sampler =
+        factory.create_sampler(i::SamplerInfo::new(i::FilterMethod::Bilinear, i::WrapMode::Clamp));
 
     factory.update_descriptor_sets(&[
         DescriptorSetWrite {
@@ -330,12 +367,16 @@ fn main() {
 
     // Rendering setup
     let viewport = target::Rect {
-        x: 0, y: 0,
-        w: pixel_width, h: pixel_height,
+        x: 0,
+        y: 0,
+        w: pixel_width,
+        h: pixel_height,
     };
     let scissor = target::Rect {
-        x: 0, y: 0,
-        w: pixel_width, h: pixel_height,
+        x: 0,
+        y: 0,
+        w: pixel_width,
+        h: pixel_height,
     };
 
     let mut frame_semaphore = factory.create_semaphore();
@@ -349,28 +390,34 @@ fn main() {
 
             let image_barrier = ImageBarrier {
                 state_src: ImageStateSrc::State(ImageAccess::empty(), ImageLayout::Undefined),
-                state_dst: ImageStateDst::State(memory::TRANSFER_WRITE, ImageLayout::TransferDstOptimal),
+                state_dst: ImageStateDst::State(memory::TRANSFER_WRITE,
+                                                ImageLayout::TransferDstOptimal),
                 image: &image_logo,
             };
             cmd_buffer.pipeline_barrier(&[], &[], &[image_barrier]);
 
-            cmd_buffer.copy_buffer_to_image(
-                &image_upload_buffer,
-                &image_logo,
-                memory::ImageLayout::TransferDstOptimal,
-                &[command::BufferImageCopy {
-                    buffer_offset: 0,
-                    buffer_row_pitch: row_pitch,
-                    buffer_slice_pitch: row_pitch * (height as u32),
-                    image_mip_level: 0,
-                    image_base_layer: 0,
-                    image_layers: 1,
-                    image_offset: command::Offset { x: 0, y: 0, z: 0 },
-                }]);
+            cmd_buffer.copy_buffer_to_image(&image_upload_buffer,
+                                            &image_logo,
+                                            memory::ImageLayout::TransferDstOptimal,
+                                            &[command::BufferImageCopy {
+                                                  buffer_offset: 0,
+                                                  buffer_row_pitch: row_pitch,
+                                                  buffer_slice_pitch: row_pitch * (height as u32),
+                                                  image_mip_level: 0,
+                                                  image_base_layer: 0,
+                                                  image_layers: 1,
+                                                  image_offset: command::Offset {
+                                                      x: 0,
+                                                      y: 0,
+                                                      z: 0,
+                                                  },
+                                              }]);
 
             let image_barrier = ImageBarrier {
-                state_src: ImageStateSrc::State(memory::TRANSFER_WRITE, ImageLayout::TransferDstOptimal),
-                state_dst: ImageStateDst::State(memory::SHADER_READ, ImageLayout::ShaderReadOnlyOptimal),
+                state_src: ImageStateSrc::State(memory::TRANSFER_WRITE,
+                                                ImageLayout::TransferDstOptimal),
+                state_dst: ImageStateDst::State(memory::SHADER_READ,
+                                                ImageLayout::ShaderReadOnlyOptimal),
                 image: &image_logo,
             };
             cmd_buffer.pipeline_barrier(&[], &[], &[image_barrier]);
@@ -378,16 +425,12 @@ fn main() {
             cmd_buffer.finish()
         };
 
-        general_queues[0].submit_graphics(
-            &[
-                QueueSubmit {
-                    cmd_buffers: &[submit],
-                    wait_semaphores: &[],
-                    signal_semaphores: &[],
-                }
-            ],
-            Some(&mut frame_fence),
-        );
+        general_queues[0].submit_graphics(&[QueueSubmit {
+                                                cmd_buffers: &[submit],
+                                                wait_semaphores: &[],
+                                                signal_semaphores: &[],
+                                            }],
+                                          Some(&mut frame_fence));
 
         factory.wait_for_fences(&[&frame_fence], WaitFor::All, !0);
     }
@@ -420,7 +463,8 @@ fn main() {
             let rtv = &swap_chain.get_images()[frame.id()];
             let rtv_target_barrier = ImageBarrier {
                 state_src: ImageStateSrc::State(ImageAccess::empty(), ImageLayout::Undefined),
-                state_dst: ImageStateDst::State(memory::COLOR_ATTACHMENT_WRITE, ImageLayout::ColorAttachmentOptimal),
+                state_dst: ImageStateDst::State(memory::COLOR_ATTACHMENT_WRITE,
+                                                ImageLayout::ColorAttachmentOptimal),
                 image: rtv,
             };
             cmd_buffer.pipeline_barrier(&[], &[], &[rtv_target_barrier]);
@@ -443,7 +487,8 @@ fn main() {
             }
 
             let rtv_present_barrier = ImageBarrier {
-                state_src: ImageStateSrc::State(memory::COLOR_ATTACHMENT_WRITE, ImageLayout::ColorAttachmentOptimal),
+                state_src: ImageStateSrc::State(memory::COLOR_ATTACHMENT_WRITE,
+                                                ImageLayout::ColorAttachmentOptimal),
                 state_dst: ImageStateDst::Present,
                 image: rtv,
             };
@@ -452,16 +497,13 @@ fn main() {
             cmd_buffer.finish()
         };
 
-        general_queues[0].submit_graphics(
-            &[
-                QueueSubmit {
-                    cmd_buffers: &[submit],
-                    wait_semaphores: &[(&mut frame_semaphore, pso::BOTTOM_OF_PIPE)],
-                    signal_semaphores: &[],
-                }
-            ],
-            Some(&mut frame_fence),
-        );
+        general_queues[0].submit_graphics(&[QueueSubmit {
+                                                cmd_buffers: &[submit],
+                                                wait_semaphores: &[(&mut frame_semaphore,
+                                                                    pso::BOTTOM_OF_PIPE)],
+                                                signal_semaphores: &[],
+                                            }],
+                                          Some(&mut frame_fence));
 
         // TODO: replace with semaphore
         factory.wait_for_fences(&[&frame_fence], WaitFor::All, !0);

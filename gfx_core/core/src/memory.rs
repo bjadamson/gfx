@@ -41,55 +41,55 @@ pub enum Usage {
 }
 
 bitflags!(
-    /// Flags providing information about the type of memory access to a resource.
-    ///
-    /// An `Access` value can be a combination of the the following bit patterns:
-    ///
-    /// - [`READ`](constant.READ.html)
-    /// - [`WRITE`](constant.WRITE.html)
-    /// - Or [`RW`](constant.RW.html) which is equivalent to `READ` and `WRITE`.
-    ///
-    /// This information is used to create resources
-    /// (see [gfx::Factory](trait.Factory.html#overview)).
+/// Flags providing information about the type of memory access to a resource.
+///
+/// An `Access` value can be a combination of the the following bit patterns:
+///
+/// - [`READ`](constant.READ.html)
+/// - [`WRITE`](constant.WRITE.html)
+/// - Or [`RW`](constant.RW.html) which is equivalent to `READ` and `WRITE`.
+///
+/// This information is used to create resources
+/// (see [gfx::Factory](trait.Factory.html#overview)).
     #[cfg_attr(feature = "serialize", derive(Serialize, Deserialize))]
     pub flags Access: u8 {
-        /// Read access
+/// Read access
         const READ  = 0x1,
-        /// Write access
+/// Write access
         const WRITE = 0x2,
-        /// Full access
+/// Full access
         const RW    = 0x3,
     }
 );
 
 bitflags!(
-    /// Flags providing information about the usage of a resource.
-    ///
-    /// A `Bind` value can be a combination of the following bit patterns:
-    ///
-    /// - [`RENDER_TARGET`](constant.RENDER_TARGET.html)
-    /// - [`DEPTH_STENCIL`](constant.DEPTH_STENCIL.html)
-    /// - [`SHADER_RESOURCE`](constant.SHADER_RESOURCE.html)
-    /// - [`UNORDERED_ACCESS`](constant.UNORDERED_ACCESS.html)
-    /// - [`TRANSFER_SRC`](constant.TRANSFER_SRC.html)
-    /// - [`TRANSFER_DST`](constant.TRANSFER_DST.html)
-    ///
-    ///
-    /// This information is used to create resources
-    /// (see [gfx::Factory](trait.Factory.html#overview)).
+/// Flags providing information about the usage of a resource.
+///
+/// A `Bind` value can be a combination of the following bit patterns:
+///
+/// - [`RENDER_TARGET`](constant.RENDER_TARGET.html)
+/// - [`DEPTH_STENCIL`](constant.DEPTH_STENCIL.html)
+/// - [`SHADER_RESOURCE`](constant.SHADER_RESOURCE.html)
+/// - [`UNORDERED_ACCESS`](constant.UNORDERED_ACCESS.html)
+/// - [`TRANSFER_SRC`](constant.TRANSFER_SRC.html)
+/// - [`TRANSFER_DST`](constant.TRANSFER_DST.html)
+///
+///
+/// This information is used to create resources
+/// (see [gfx::Factory](trait.Factory.html#overview)).
     #[cfg_attr(feature = "serialize", derive(Serialize, Deserialize))]
     pub flags Bind: u8 {
-        /// Can be rendered into.
+/// Can be rendered into.
         const RENDER_TARGET    = 0x1,
-        /// Can serve as a depth/stencil target.
+/// Can serve as a depth/stencil target.
         const DEPTH_STENCIL    = 0x2,
-        /// Can be bound to the shader for reading.
+/// Can be bound to the shader for reading.
         const SHADER_RESOURCE  = 0x4,
-        /// Can be bound to the shader for writing.
+/// Can be bound to the shader for writing.
         const UNORDERED_ACCESS = 0x8,
-        /// Can be transfered from.
+/// Can be transfered from.
         const TRANSFER_SRC     = 0x10,
-        /// Can be transfered into.
+/// Can be transfered into.
         const TRANSFER_DST     = 0x20,
     }
 );
@@ -141,37 +141,35 @@ pub fn cast_slice<A: Pod, B: Pod>(slice: &[A]) -> &[B] {
     let raw_len = mem::size_of::<A>().wrapping_mul(slice.len());
     let len = raw_len / mem::size_of::<B>();
     assert_eq!(raw_len, mem::size_of::<B>().wrapping_mul(len));
-    unsafe {
-        slice::from_raw_parts(slice.as_ptr() as *const B, len)
-    }
+    unsafe { slice::from_raw_parts(slice.as_ptr() as *const B, len) }
 }
 
 bitflags!(
-    /// Heap property flags.
+/// Heap property flags.
     pub flags HeapProperties: u16 {
-        /// Device local heaps are located on the GPU.
+/// Device local heaps are located on the GPU.
         const DEVICE_LOCAL   = 0x1,
 
-        /// CPU-GPU coherent.
-        ///
-        /// Non-coherent heaps require explicit flushing.
+/// CPU-GPU coherent.
+///
+/// Non-coherent heaps require explicit flushing.
         const COHERENT     = 0x2,
 
-        /// Host visible heaps can be accessed by the CPU.
-        ///
-        /// Backends must provide at least one cpu visible heap.
+/// Host visible heaps can be accessed by the CPU.
+///
+/// Backends must provide at least one cpu visible heap.
         const CPU_VISIBLE   = 0x4,
 
-        /// Cached memory by the CPU
+/// Cached memory by the CPU
         const CPU_CACHED = 0x8,
 
-        /// Memory combined writes.
-        ///
-        /// Buffer writes will be combined for possible larger bus transactions.
-        /// It's not advised to use these heaps for reading back data.
+/// Memory combined writes.
+///
+/// Buffer writes will be combined for possible larger bus transactions.
+/// It's not advised to use these heaps for reading back data.
         const WRITE_COMBINED = 0x10,
 
-        ///
+///
         const LAZILY_ALLOCATED = 0x20,
     }
 );

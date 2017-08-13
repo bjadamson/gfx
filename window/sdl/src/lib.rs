@@ -44,13 +44,11 @@ extern crate gfx_core as core;
 extern crate gfx_device_gl as device_gl;
 
 use core::handle;
-use core::format::{ChannelType, DepthFormat, Format, RenderFormat};
+use core::format::{ChannelType, Format};
 pub use device_gl::{Backend, Resources};
 use sdl2::video::{DisplayMode, GLContext, WindowBuilder, WindowBuildError};
 use sdl2::pixels::PixelFormatEnum;
-use core::{format, memory, texture};
-use core::texture::Size;
-use core::memory::Typed;
+use core::{memory, texture};
 use device_gl::Resources as R;
 use std::rc::Rc;
 
@@ -90,9 +88,8 @@ fn sdl2_pixel_format_from_gfx(format: Format) -> Option<PixelFormatEnum> {
                    compared to Glutin/GLFW, beware!");
             Some(SdlFmt::ARGB2101010)
         }
-        R4_G4 | R8 | R8_G8 | R11_G11_B10 | R16 | R16_G16 | R16_G16_B16 |
-        R16_G16_B16_A16 | R32 | R32_G32 | R32_G32_B32 | R32_G32_B32_A32 | D16 | D24 |
-        D24_S8 | D32 | D32_S8 => None,
+        R4_G4 | R8 | R8_G8 | R11_G11_B10 | R16 | R16_G16 | R16_G16_B16 | R16_G16_B16_A16 |
+        R32 | R32_G32 | R32_G32_B32 | R32_G32_B32_A32 | D16 | D24 | D24_S8 | D32 | D32_S8 => None,
     }
 }
 
@@ -114,7 +111,7 @@ impl core::SwapChain<Backend> for SwapChain {
         &self.backbuffer
     }
 
-    fn acquire_frame(&mut self, sync: core::FrameSync<R>) -> core::Frame {
+    fn acquire_frame(&mut self, _sync: core::FrameSync<R>) -> core::Frame {
         // TODO: fence sync
         core::Frame::new(0)
     }
@@ -134,34 +131,33 @@ pub struct Surface {
 impl core::Surface<Backend> for Surface {
     type SwapChain = SwapChain;
 
-    fn supports_queue(&self, _: &device_gl::QueueFamily) -> bool { true }
+    fn supports_queue(&self, _: &device_gl::QueueFamily) -> bool {
+        true
+    }
     fn build_swapchain<Q>(&mut self, config: core::SwapchainConfig, _: &Q) -> SwapChain
         where Q: AsRef<device_gl::CommandQueue>
     {
         use core::handle::Producer;
         let dim = get_window_dimensions(&self.window);
-        let color = self.manager.make_texture(
-            device_gl::NewTexture::Surface(0),
-            texture::Info {
-                levels: 1,
-                kind: texture::Kind::D2(dim.0, dim.1, dim.3),
-                format: config.color_format.0,
-                bind: memory::RENDER_TARGET | memory::TRANSFER_SRC,
-                usage: memory::Usage::Data,
-            },
-        );
+        let color = self.manager.make_texture(device_gl::NewTexture::Surface(0),
+                                              texture::Info {
+                                                  levels: 1,
+                                                  kind: texture::Kind::D2(dim.0, dim.1, dim.3),
+                                                  format: config.color_format.0,
+                                                  bind: memory::RENDER_TARGET |
+                                                        memory::TRANSFER_SRC,
+                                                  usage: memory::Usage::Data,
+                                              });
 
         let ds = config.depth_stencil_format.map(|ds_format| {
-            self.manager.make_texture(
-                device_gl::NewTexture::Surface(0),
-                texture::Info {
-                    levels: 1,
-                    kind: texture::Kind::D2(dim.0, dim.1, dim.3),
-                    format: ds_format.0,
-                    bind: memory::DEPTH_STENCIL | memory::TRANSFER_SRC,
-                    usage: memory::Usage::Data,
-                },
-            )
+            self.manager.make_texture(device_gl::NewTexture::Surface(0),
+                                      texture::Info {
+                                          levels: 1,
+                                          kind: texture::Kind::D2(dim.0, dim.1, dim.3),
+                                          format: ds_format.0,
+                                          bind: memory::DEPTH_STENCIL | memory::TRANSFER_SRC,
+                                          usage: memory::Usage::Data,
+                                      })
         });
 
         SwapChain {
@@ -189,8 +185,9 @@ impl core::WindowExt<Backend> for Window {
     type Adapter = device_gl::Adapter;
 
     fn get_surface_and_adapters(&mut self) -> (Surface, Vec<device_gl::Adapter>) {
-        let adapter = device_gl::Adapter::new(|s|
-            self.0.subsystem().gl_get_proc_address(s) as *const std::os::raw::c_void);
+        let adapter = device_gl::Adapter::new(|s| {
+            self.0.subsystem().gl_get_proc_address(s) as *const std::os::raw::c_void
+        });
         let surface = Surface {
             window: self.0.clone(),
             manager: handle::Manager::new(),
@@ -201,12 +198,14 @@ impl core::WindowExt<Backend> for Window {
 }
 
 /// Helper function for setting up an GL window and context
-pub fn build(mut builder: WindowBuilder, cf: Format, df: Format) -> Result<(sdl2::video::Window, GLContext), InitError> {
+pub fn build(mut builder: WindowBuilder,
+             cf: Format,
+             df: Format)
+             -> Result<(sdl2::video::Window, GLContext), InitError> {
     let mut window = builder.opengl().build()?;
 
     let display_mode = DisplayMode {
-        format: sdl2_pixel_format_from_gfx(cf)
-                    .ok_or(InitError::PixelFormatUnsupportedError)?,
+        format: sdl2_pixel_format_from_gfx(cf).ok_or(InitError::PixelFormatUnsupportedError)?,
         ..window.display_mode()?
     };
     window.set_display_mode((Some(display_mode)))?;

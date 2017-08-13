@@ -29,7 +29,6 @@ use ash::version::{DeviceV1_0, EntryV1_0, InstanceV1_0, V1_0};
 use ash::vk;
 use ash::{Entry, LoadingError};
 use core::{format, memory, QueueSubmit, FrameSync};
-use core::command::Submit;
 use std::ffi::{CStr, CString};
 use std::mem;
 use std::ptr;
@@ -53,9 +52,11 @@ lazy_static! {
 }
 
 pub struct QueueFamily {
+    #[allow(dead_code)]
     instance: Arc<InstanceInner>,
     device: vk::PhysicalDevice,
     family_index: u32,
+    #[allow(dead_code)]
     queue_type: vk::QueueFlags,
     queue_count: u32,
 }
@@ -309,7 +310,7 @@ impl core::CommandQueue for CommandQueue {
             *self.inner.0.borrow(),
             &submits,
             fence,
-        );
+        ).unwrap(); // TODO: error-handling
     }
 }
 

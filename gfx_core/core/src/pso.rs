@@ -18,11 +18,10 @@
 //! will want to use the typed and safe `PipelineState`. See the `pso` module inside the `gfx`
 //! crate.
 
-use {MAX_COLOR_TARGETS, MAX_VERTEX_ATTRIBUTES, MAX_CONSTANT_BUFFERS,
-     MAX_RESOURCE_VIEWS, MAX_UNORDERED_VIEWS, MAX_SAMPLERS};
-use {ConstantBufferSlot, ColorSlot, ResourceViewSlot,
-     UnorderedViewSlot, SamplerSlot,
-     Primitive, Resources};
+use {MAX_COLOR_TARGETS, MAX_VERTEX_ATTRIBUTES, MAX_CONSTANT_BUFFERS, MAX_RESOURCE_VIEWS,
+     MAX_UNORDERED_VIEWS, MAX_SAMPLERS};
+use {ConstantBufferSlot, ColorSlot, ResourceViewSlot, UnorderedViewSlot, SamplerSlot, Primitive,
+     Resources};
 use {format, state as s, texture};
 use shade::Usage;
 use std::error::Error;
@@ -231,11 +230,15 @@ pub struct ConstantBufferParam<R: Resources>(pub R::Buffer, pub Usage, pub Const
 
 /// A shader resource view (SRV) run-time parameter for PSO.
 #[derive(Clone, Copy, Debug, Eq, Hash, PartialEq)]
-pub struct ResourceViewParam<R: Resources>(pub R::ShaderResourceView, pub Usage, pub ResourceViewSlot);
+pub struct ResourceViewParam<R: Resources>(pub R::ShaderResourceView,
+                                           pub Usage,
+                                           pub ResourceViewSlot);
 
 /// An unordered access view (UAV) run-time parameter for PSO.
 #[derive(Clone, Copy, Debug, Eq, Hash, PartialEq)]
-pub struct UnorderedViewParam<R: Resources>(pub R::UnorderedAccessView, pub Usage, pub UnorderedViewSlot);
+pub struct UnorderedViewParam<R: Resources>(pub R::UnorderedAccessView,
+                                            pub Usage,
+                                            pub UnorderedViewSlot);
 
 /// A sampler run-time parameter for PSO.
 #[derive(Clone, Copy, Debug, Eq, Hash, PartialEq)]
@@ -304,41 +307,41 @@ impl<R: Resources> PixelTargetSet<R> {
 }
 
 bitflags!(
-    /// Stages of the logical pipeline.
-    ///
-    /// The pipeline is structured as given the by the ordering of the flags.
-    /// Some stages are queue type dependent.
+/// Stages of the logical pipeline.
+///
+/// The pipeline is structured as given the by the ordering of the flags.
+/// Some stages are queue type dependent.
     pub flags PipelineStage: u32 {
-        /// Beginning of the command queue.
+/// Beginning of the command queue.
         const TOP_OF_PIPE = 0x1,
-        /// Indirect data consumption.
+/// Indirect data consumption.
         const DRAW_INDIRECT = 0x2,
-        /// Vertex data consumption.
+/// Vertex data consumption.
         const VERTEX_INPUT = 0x4,
-        /// Vertex shader execution.
+/// Vertex shader execution.
         const VERTEX_SHADER = 0x8,
-        /// Hull shader execution.
+/// Hull shader execution.
         const HULL_SHADER = 0x10,
-        /// Domain shader execution.
+/// Domain shader execution.
         const DOMAIN_SHADER = 0x20,
-        /// Geometry shader execution.
+/// Geometry shader execution.
         const GEOMETRY_SHADER = 0x40,
-        /// Pixel shader execution.
+/// Pixel shader execution.
         const PIXEL_SHADER = 0x80,
-        /// Stage of early depth and stencil test.
+/// Stage of early depth and stencil test.
         const EARLY_FRAGMENT_TESTS = 0x100,
-        /// Stage of late depth and stencil test.
+/// Stage of late depth and stencil test.
         const LATE_FRAGMENT_TESTS = 0x200,
-        /// Stage of final color value calculation.
+/// Stage of final color value calculation.
         const COLOR_ATTACHMENT_OUTPUT = 0x400,
-        /// Compute shader execution,
+/// Compute shader execution,
         const COMPUTE_SHADER = 0x800,
-        /// Copy/Transfer command execution.
+/// Copy/Transfer command execution.
         const TRANSFER = 0x1000,
-        /// End of the command queue.
+/// End of the command queue.
         const BOTTOM_OF_PIPE = 0x2000,
-        /// Read/Write access from host.
-        /// (Not a real pipeline stage)
+/// Read/Write access from host.
+/// (Not a real pipeline stage)
         const HOST = 0x4000,
     }
 );

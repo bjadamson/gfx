@@ -27,11 +27,10 @@ use ash::{Entry, LoadingError};
 use ash::version::{EntryV1_0, DeviceV1_0, InstanceV1_0, V1_0};
 use ash::vk;
 use core::{command as com, handle, memory};
-use core::{CommandBuffer, FrameSync, QueueType};
+use core::{QueueType};
 use std::{mem, ptr};
 use std::ffi::{CStr, CString};
 use std::sync::Arc;
-use std::collections::VecDeque;
 
 mod command;
 pub mod data;
@@ -182,6 +181,7 @@ impl Instance {
 pub struct QueueFamily {
     device: vk::PhysicalDevice,
     family_index: u32,
+    #[allow(dead_code)]
     queue_type: vk::QueueFlags,
     queue_count: u32,
 }
@@ -308,7 +308,7 @@ impl core::Adapter<Backend> for Adapter {
         // Create associated command queues for each queue type
         let queues = queue_infos.iter().flat_map(|info| {
             (0..info.queue_count).map(|id| {
-                let queue = unsafe {
+                let _queue = unsafe {
                     device.raw.0.get_device_queue(info.queue_family_index, id)
                 };
                 unimplemented!()
@@ -385,9 +385,9 @@ impl CommandQueue {
 impl core::CommandQueue<Backend> for CommandQueue {
     unsafe fn submit_raw<'a, I>(
         &mut self,
-        submit_infos: I,
-        fence: Option<&handle::Fence<Resources>>,
-        access: &com::AccessInfo<Resources>,
+        _submit_infos: I,
+        _fence: Option<&handle::Fence<Resources>>,
+        _access: &com::AccessInfo<Resources>,
     ) where I: Iterator<Item=core::RawSubmission<'a, Backend>> {
         unimplemented!()
     }
@@ -404,8 +404,6 @@ impl core::CommandQueue<Backend> for CommandQueue {
     }
 
     fn cleanup(&mut self) {
-        use core::handle::Producer;
-
         self.frame_handles.clear();
         // TODO
     }
@@ -454,15 +452,15 @@ impl core::Resources for Resources {
 pub struct Mapping;
 
 impl core::mapping::Gate<Resources> for Mapping {
-    unsafe fn set<T>(&self, index: usize, val: T) {
+    unsafe fn set<T>(&self, _index: usize, _val: T) {
         unimplemented!()
     }
 
-    unsafe fn slice<'a, 'b, T>(&'a self, len: usize) -> &'b [T] {
+    unsafe fn slice<'a, 'b, T>(&'a self, _len: usize) -> &'b [T] {
         unimplemented!()
     }
 
-    unsafe fn mut_slice<'a, 'b, T>(&'a self, len: usize) -> &'b mut [T] {
+    unsafe fn mut_slice<'a, 'b, T>(&'a self, _len: usize) -> &'b mut [T] {
         unimplemented!()
     }
 }

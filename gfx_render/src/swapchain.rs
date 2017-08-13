@@ -26,7 +26,10 @@ use memory::Typed;
 pub trait SwapChainExt<B: Backend>: SwapChain<B> {
     /// Create color RTVs for all backbuffer images.
     // TODO: error handling
-    fn create_color_views<T: format::RenderFormat>(&mut self, device: &mut B::Device) -> Vec<handle::RenderTargetView<B::Resources, T>> {
+    fn create_color_views<T: format::RenderFormat>
+        (&mut self,
+         device: &mut B::Device)
+         -> Vec<handle::RenderTargetView<B::Resources, T>> {
         self.get_backbuffers()
             .iter()
             .map(|&(ref color, _)| {
@@ -36,11 +39,11 @@ pub trait SwapChainExt<B: Backend>: SwapChain<B> {
                     layer: None,
                 };
                 let rtv = device.view_texture_as_render_target_raw(color, color_desc)
-                                .unwrap();
+                    .unwrap();
                 Typed::new(rtv)
             })
             .collect()
     }
 }
 
-impl <T, B: Backend> SwapChainExt<B> for T where T: SwapChain<B> { }
+impl<T, B: Backend> SwapChainExt<B> for T where T: SwapChain<B> {}

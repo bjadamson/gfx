@@ -17,8 +17,7 @@
 use std::marker::PhantomData;
 use std::ops::{Deref, DerefMut};
 use std::collections::hash_set::{self, HashSet};
-use {Backend, Resources, IndexType, InstanceCount, VertexCount,
-     SubmissionResult, SubmissionError};
+use {Backend, Resources, IndexType, InstanceCount, VertexCount, SubmissionResult, SubmissionError};
 use {state, target, pso, shade, texture, handle};
 use queue::capability::{Capability, General, Graphics, Compute, Transfer};
 
@@ -40,7 +39,7 @@ pub type InstanceParams = (InstanceCount, VertexCount);
 
 /// Thread-safe finished command buffer for submission.
 pub struct Submit<B: Backend, C>(B::SubmitInfo, PhantomData<C>);
-unsafe impl<B: Backend, C> Send for Submit<B, C> { }
+unsafe impl<B: Backend, C> Send for Submit<B, C> {}
 
 impl<B: Backend, C> Submit<B, C> {
     // Unsafe because we could try to submit a command buffer multiple times.
@@ -75,7 +74,8 @@ impl<B, C> DerefMut for Encoder<B, C> {
 }
 
 impl<B, C> Encoder<B, C>
-    where B: Backend, C: CommandBuffer<B> + Capability
+    where B: Backend,
+          C: CommandBuffer<B> + Capability
 {
     #[doc(hidden)]
     pub unsafe fn new(buffer: C) -> Self {
@@ -99,7 +99,7 @@ pub trait CommandBuffer<B: Backend> {
 
 /// Command buffer with graphics, compute and transfer functionality.
 pub struct GeneralCommandBuffer<'a, B: Backend>(pub(crate) &'a mut B::RawCommandBuffer)
-where B::RawCommandBuffer: 'a;
+    where B::RawCommandBuffer: 'a;
 
 impl<'a, B: Backend> CommandBuffer<B> for GeneralCommandBuffer<'a, B> {
     unsafe fn end(&mut self) -> B::SubmitInfo {
@@ -127,7 +127,7 @@ impl<'a, B: Backend> DerefMut for GeneralCommandBuffer<'a, B> {
 
 /// Command buffer with graphics and transfer functionality.
 pub struct GraphicsCommandBuffer<'a, B: Backend>(pub(crate) &'a mut B::RawCommandBuffer)
-where B::RawCommandBuffer: 'a;
+    where B::RawCommandBuffer: 'a;
 
 impl<'a, B: Backend> CommandBuffer<B> for GraphicsCommandBuffer<'a, B> {
     unsafe fn end(&mut self) -> B::SubmitInfo {
@@ -155,7 +155,7 @@ impl<'a, B: Backend> DerefMut for GraphicsCommandBuffer<'a, B> {
 
 /// Command buffer with compute and transfer functionality.
 pub struct ComputeCommandBuffer<'a, B: Backend>(pub(crate) &'a mut B::RawCommandBuffer)
-where B::RawCommandBuffer: 'a;
+    where B::RawCommandBuffer: 'a;
 
 impl<'a, B: Backend> CommandBuffer<B> for ComputeCommandBuffer<'a, B> {
     unsafe fn end(&mut self) -> B::SubmitInfo {
@@ -169,7 +169,7 @@ impl<'a, B: Backend> Capability for ComputeCommandBuffer<'a, B> {
 
 /// Command buffer with transfer functionality.
 pub struct TransferCommandBuffer<'a, B: Backend>(pub(crate) &'a mut B::RawCommandBuffer)
-where B::RawCommandBuffer: 'a;
+    where B::RawCommandBuffer: 'a;
 
 impl<'a, B: Backend> CommandBuffer<B> for TransferCommandBuffer<'a, B> {
     unsafe fn end(&mut self) -> B::SubmitInfo {
@@ -211,33 +211,52 @@ pub trait Buffer<R: Resources>: 'static {
     /// Set reference values for the blending and stencil front/back
     fn set_ref_values(&mut self, state::RefValues);
     /// Copy part of a buffer to another
-    fn copy_buffer(&mut self, src: R::Buffer, dst: R::Buffer,
-                   src_offset_bytes: usize, dst_offset_bytes: usize,
+    fn copy_buffer(&mut self,
+                   src: R::Buffer,
+                   dst: R::Buffer,
+                   src_offset_bytes: usize,
+                   dst_offset_bytes: usize,
                    size_bytes: usize);
     /// Copy part of a buffer to a texture
     fn copy_buffer_to_texture(&mut self,
-                              src: R::Buffer, src_offset_bytes: usize,
-                              dst: R::Texture, texture::Kind,
-                              Option<texture::CubeFace>, texture::RawImageInfo);
+                              src: R::Buffer,
+                              src_offset_bytes: usize,
+                              dst: R::Texture,
+                              texture::Kind,
+                              Option<texture::CubeFace>,
+                              texture::RawImageInfo);
     /// Copy part of a texture to a buffer
     fn copy_texture_to_buffer(&mut self,
-                              src: R::Texture, texture::Kind,
-                              Option<texture::CubeFace>, texture::RawImageInfo,
-                              dst: R::Buffer, dst_offset_bytes: usize);
+                              src: R::Texture,
+                              texture::Kind,
+                              Option<texture::CubeFace>,
+                              texture::RawImageInfo,
+                              dst: R::Buffer,
+                              dst_offset_bytes: usize);
     /// Update a vertex/index/uniform buffer
     fn update_buffer(&mut self, R::Buffer, data: &[u8], offset: usize);
     /// Update a texture
-    fn update_texture(&mut self, R::Texture, texture::Kind, Option<texture::CubeFace>,
-                      data: &[u8], texture::RawImageInfo);
+    fn update_texture(&mut self,
+                      R::Texture,
+                      texture::Kind,
+                      Option<texture::CubeFace>,
+                      data: &[u8],
+                      texture::RawImageInfo);
     fn generate_mipmap(&mut self, R::ShaderResourceView);
     /// Clear color target
     fn clear_color(&mut self, R::RenderTargetView, ClearColor);
-    fn clear_depth_stencil(&mut self, R::DepthStencilView,
-                           Option<target::Depth>, Option<target::Stencil>);
+    fn clear_depth_stencil(&mut self,
+                           R::DepthStencilView,
+                           Option<target::Depth>,
+                           Option<target::Stencil>);
     /// Draw a primitive
     fn call_draw(&mut self, VertexCount, VertexCount, Option<InstanceParams>);
     /// Draw a primitive with index buffer
-    fn call_draw_indexed(&mut self, VertexCount, VertexCount, VertexCount, Option<InstanceParams>);
+    fn call_draw_indexed(&mut self,
+                         VertexCount,
+                         VertexCount,
+                         VertexCount,
+                         Option<InstanceParams>);
 }
 
 macro_rules! impl_clear {
@@ -363,17 +382,13 @@ impl<'a, R: Resources> AccessGuard<'a, R> {
     /// Returns the mapped buffers that The GPU will read from,
     /// with exclusive acces to their mapping
     pub fn access_mapped_reads(&mut self) -> AccessGuardBuffers<R> {
-        AccessGuardBuffers {
-            buffers: self.inner.mapped_reads()
-        }
+        AccessGuardBuffers { buffers: self.inner.mapped_reads() }
     }
 
     /// Returns the mapped buffers that The GPU will write to,
     /// with exclusive acces to their mapping
     pub fn access_mapped_writes(&mut self) -> AccessGuardBuffers<R> {
-        AccessGuardBuffers {
-            buffers: self.inner.mapped_writes()
-        }
+        AccessGuardBuffers { buffers: self.inner.mapped_writes() }
     }
 
     pub fn access_mapped(&mut self) -> AccessGuardBuffersChain<R> {
@@ -404,16 +419,16 @@ impl<'a, R: Resources> Drop for AccessGuard<'a, R> {
 #[allow(missing_docs)]
 #[derive(Debug)]
 pub struct AccessGuardBuffers<'a, R: Resources> {
-    buffers: AccessInfoBuffers<'a, R>
+    buffers: AccessInfoBuffers<'a, R>,
 }
 
 impl<'a, R: Resources> Iterator for AccessGuardBuffers<'a, R> {
     type Item = (&'a handle::RawBuffer<R>, &'a mut R::Mapping);
 
     fn next(&mut self) -> Option<Self::Item> {
-        self.buffers.next().map(|buffer| unsafe {
-            (buffer, buffer.mapping().unwrap().use_access())
-        })
+        self.buffers
+            .next()
+            .map(|buffer| unsafe { (buffer, buffer.mapping().unwrap().use_access()) })
     }
 }
 
@@ -421,16 +436,16 @@ impl<'a, R: Resources> Iterator for AccessGuardBuffers<'a, R> {
 #[derive(Debug)]
 pub struct AccessGuardBuffersChain<'a, R: Resources> {
     fst: AccessInfoBuffers<'a, R>,
-    snd: AccessInfoBuffers<'a, R>
+    snd: AccessInfoBuffers<'a, R>,
 }
 
 impl<'a, R: Resources> Iterator for AccessGuardBuffersChain<'a, R> {
     type Item = (&'a handle::RawBuffer<R>, &'a mut R::Mapping);
 
     fn next(&mut self) -> Option<Self::Item> {
-        self.fst.next().or_else(|| self.snd.next())
-            .map(|buffer| unsafe {
-                (buffer, buffer.mapping().unwrap().use_access())
-            })
+        self.fst
+            .next()
+            .or_else(|| self.snd.next())
+            .map(|buffer| unsafe { (buffer, buffer.mapping().unwrap().use_access()) })
     }
 }

@@ -13,12 +13,10 @@
 // limitations under the License.
 
 use core::{self, pool};
-use core::command::{Buffer, GeneralCommandBuffer, GraphicsCommandBuffer, ComputeCommandBuffer, TransferCommandBuffer, Encoder};
-use core::queue::{GeneralQueue, GraphicsQueue, ComputeQueue, TransferQueue};
-use command::{self, RawCommandBuffer, SubpassCommandBuffer};
-use {Backend, CommandQueue, FrameBuffer, Resources, Share};
+use core::command::Buffer;
+use command::{RawCommandBuffer, SubpassCommandBuffer};
+use {Backend, CommandQueue, FrameBuffer};
 use gl;
-use std::rc::Rc;
 
 fn create_fbo_internal(gl: &gl::Gl) -> gl::types::GLuint {
     let mut name = 0 as ::FrameBuffer;
@@ -32,6 +30,7 @@ fn create_fbo_internal(gl: &gl::Gl) -> gl::types::GLuint {
 pub struct RawCommandPool {
     fbo: FrameBuffer,
     command_buffers: Vec<RawCommandBuffer>,
+    #[allow(dead_code)]
     next_buffer: usize,
 }
 
@@ -49,7 +48,7 @@ impl core::RawCommandPool<Backend> for RawCommandPool {
         }
     }
 
-    unsafe fn from_queue<'a, Q>(mut queue: Q, capacity: usize) -> Self
+    unsafe fn from_queue<'a, Q>(queue: Q, capacity: usize) -> Self
     where Q: AsRef<CommandQueue>
     {
         let queue = queue.as_ref();
@@ -75,6 +74,7 @@ impl core::RawCommandPool<Backend> for RawCommandPool {
     }
 }
 
+#[allow(dead_code)]
 pub struct SubpassCommandPool {
     command_buffers: Vec<SubpassCommandBuffer>,
     next_buffer: usize,

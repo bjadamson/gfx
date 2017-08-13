@@ -18,8 +18,9 @@
 
 use std::{fmt, cmp, hash};
 use std::error::Error;
-use {Resources};
-use {AttributeSlot, ColorSlot, ConstantBufferSlot, ResourceViewSlot, SamplerSlot, UnorderedViewSlot};
+use Resources;
+use {AttributeSlot, ColorSlot, ConstantBufferSlot, ResourceViewSlot, SamplerSlot,
+     UnorderedViewSlot};
 
 #[cfg(feature = "mint")]
 use mint;
@@ -30,17 +31,26 @@ pub type Dimension = u8;
 /// Whether the sampler samples an array texture.
 #[derive(Clone, Copy, Debug, Eq, Hash, PartialEq)]
 #[cfg_attr(feature = "serialize", derive(Serialize, Deserialize))]
-pub enum IsArray { Array, NoArray }
+pub enum IsArray {
+    Array,
+    NoArray,
+}
 
 /// Whether the sampler compares the depth value upon sampling.
 #[derive(Clone, Copy, Debug, Eq, Hash, PartialEq)]
 #[cfg_attr(feature = "serialize", derive(Serialize, Deserialize))]
-pub enum IsComparison { Compare, NoCompare }
+pub enum IsComparison {
+    Compare,
+    NoCompare,
+}
 
 /// Whether the sampler samples a multisample texture.
 #[derive(Clone, Copy, Debug, Eq, Hash, PartialEq)]
 #[cfg_attr(feature = "serialize", derive(Serialize, Deserialize))]
-pub enum IsMultiSample { MultiSample, NoMultiSample }
+pub enum IsMultiSample {
+    MultiSample,
+    NoMultiSample,
+}
 
 /// Whether the sampler samples a rectangle texture.
 ///
@@ -48,12 +58,18 @@ pub enum IsMultiSample { MultiSample, NoMultiSample }
 /// (as opposed to the usual, normalized to [0, 1]).
 #[derive(Clone, Copy, Debug, Eq, Hash, PartialEq)]
 #[cfg_attr(feature = "serialize", derive(Serialize, Deserialize))]
-pub enum IsRect { Rect, NoRect }
+pub enum IsRect {
+    Rect,
+    NoRect,
+}
 
 /// Whether the matrix is column or row major.
 #[derive(Clone, Copy, Debug, Eq, Hash, PartialEq)]
 #[cfg_attr(feature = "serialize", derive(Serialize, Deserialize))]
-pub enum MatrixFormat { ColumnMajor, RowMajor }
+pub enum MatrixFormat {
+    ColumnMajor,
+    RowMajor,
+}
 
 /// A type of the texture variable.
 /// This has to match the actual data we bind to the shader.
@@ -131,7 +147,8 @@ pub enum Stage {
 }
 
 /// A constant static array of all shader stages.
-pub const STAGES: [Stage; 5] = [Stage::Vertex, Stage::Hull, Stage::Domain, Stage::Geometry, Stage::Pixel];
+pub const STAGES: [Stage; 5] =
+    [Stage::Vertex, Stage::Hull, Stage::Domain, Stage::Geometry, Stage::Pixel];
 
 // Describing program data
 
@@ -163,8 +180,8 @@ pub enum UniformValue {
 impl fmt::Debug for UniformValue {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         match *self {
-            UniformValue::I32(x)            => write!(f, "ValueI32({:?})", x),
-            UniformValue::F32(x)            => write!(f, "ValueF32({:?})", x),
+            UniformValue::I32(x) => write!(f, "ValueI32({:?})", x),
+            UniformValue::F32(x) => write!(f, "ValueF32({:?})", x),
 
             UniformValue::I32Vector2(ref v) => write!(f, "ValueI32Vector2({:?})", &v[..]),
             UniformValue::I32Vector3(ref v) => write!(f, "ValueI32Vector3({:?})", &v[..]),
@@ -180,21 +197,21 @@ impl fmt::Debug for UniformValue {
                     try!(write!(f, "{:?}", &v[..]));
                 }
                 write!(f, ")")
-            },
+            }
             UniformValue::F32Matrix3(ref m) => {
                 try!(write!(f, "ValueF32Matrix3("));
                 for v in m.iter() {
                     try!(write!(f, "{:?}", &v[..]));
                 }
                 write!(f, ")")
-            },
+            }
             UniformValue::F32Matrix4(ref m) => {
                 try!(write!(f, "ValueF32Matrix4("));
                 for v in m.iter() {
                     try!(write!(f, "{:?}", &v[..]));
                 }
                 write!(f, ")")
-            },
+            }
         }
     }
 }
@@ -293,7 +310,7 @@ impl<T: BaseTyped> Formatted for T {
 }
 
 impl_const_vector!(2, 3, 4);
-impl_const_matrix!([2,2], [3,3], [4,4], [4,3]);
+impl_const_matrix!([2, 2], [3, 3], [4, 4], [4, 3]);
 
 #[cfg(feature = "mint")]
 impl_const_vector_mint! {
@@ -315,18 +332,18 @@ impl_const_matrix_mint! {
 }
 
 bitflags!(
-    /// Parameter usage flags.
+/// Parameter usage flags.
     #[cfg_attr(feature = "serialize", derive(Serialize, Deserialize))]
     pub flags Usage: u8 {
-        /// Used by the vertex shader
+/// Used by the vertex shader
         const VERTEX   = 0x1,
-        /// Used by the geometry shader
+/// Used by the geometry shader
         const GEOMETRY = 0x2,
-        /// Used by the pixel shader
+/// Used by the pixel shader
         const PIXEL    = 0x4,
-        /// Used by the hull shader
+/// Used by the hull shader
         const HULL    = 0x8,
-        /// Used by the pixel shader
+/// Used by the pixel shader
         const DOMAIN    = 0x16,
 
     }
@@ -490,10 +507,14 @@ impl<R: Resources> Program<R> {
     }
 
     #[doc(hidden)]
-    pub fn resource(&self) -> &R::Program { &self.resource }
+    pub fn resource(&self) -> &R::Program {
+        &self.resource
+    }
 
     /// Get program info
-    pub fn get_info(&self) -> &ProgramInfo { &self.info }
+    pub fn get_info(&self) -> &ProgramInfo {
+        &self.info
+    }
 }
 
 impl<R: Resources + cmp::PartialEq> cmp::PartialEq for Program<R> {
@@ -505,7 +526,9 @@ impl<R: Resources + cmp::PartialEq> cmp::PartialEq for Program<R> {
 impl<R: Resources + cmp::Eq> cmp::Eq for Program<R> {}
 
 impl<R: Resources + hash::Hash> hash::Hash for Program<R> {
-    fn hash<H>(&self, state: &mut H) where H: hash::Hasher {
+    fn hash<H>(&self, state: &mut H)
+        where H: hash::Hasher
+    {
         self.resource().hash(state);
     }
 }
@@ -531,15 +554,18 @@ impl fmt::Display for CompatibilityError {
 impl Error for CompatibilityError {
     fn description(&self) -> &str {
         match *self {
-            CompatibilityError::ErrorArraySize =>
+            CompatibilityError::ErrorArraySize => {
                 "Array sizes differ between the value and the var \
-                 (trying to upload a vec2 as a vec4, etc)",
-            CompatibilityError::ErrorBaseType =>
+                 (trying to upload a vec2 as a vec4, etc)"
+            }
+            CompatibilityError::ErrorBaseType => {
                 "Base types differ between the value and the var \
-                 (trying to upload a f32 as a u16, etc)",
-            CompatibilityError::ErrorContainer =>
+                 (trying to upload a f32 as a u16, etc)"
+            }
+            CompatibilityError::ErrorContainer => {
                 "Container-ness differs between the value and the var \
-                 (trying to upload a scalar as a vec4, etc)",
+                 (trying to upload a scalar as a vec4, etc)"
+            }
         }
     }
 }
@@ -549,25 +575,25 @@ impl ConstVar {
     /// in this variable.
     pub fn is_compatible(&self, value: &UniformValue) -> Result<(), CompatibilityError> {
         if self.count != 1 {
-            return Err(CompatibilityError::ErrorArraySize)
+            return Err(CompatibilityError::ErrorArraySize);
         }
         match (self.base_type, self.container, *value) {
-            (BaseType::I32, ContainerType::Single,         UniformValue::I32(_))        => Ok(()),
-            (BaseType::F32, ContainerType::Single,         UniformValue::F32(_))        => Ok(()),
+            (BaseType::I32, ContainerType::Single, UniformValue::I32(_)) => Ok(()),
+            (BaseType::F32, ContainerType::Single, UniformValue::F32(_)) => Ok(()),
 
-            (BaseType::F32, ContainerType::Vector(2),      UniformValue::F32Vector2(_)) => Ok(()),
-            (BaseType::F32, ContainerType::Vector(3),      UniformValue::F32Vector3(_)) => Ok(()),
-            (BaseType::F32, ContainerType::Vector(4),      UniformValue::F32Vector4(_)) => Ok(()),
+            (BaseType::F32, ContainerType::Vector(2), UniformValue::F32Vector2(_)) => Ok(()),
+            (BaseType::F32, ContainerType::Vector(3), UniformValue::F32Vector3(_)) => Ok(()),
+            (BaseType::F32, ContainerType::Vector(4), UniformValue::F32Vector4(_)) => Ok(()),
 
-            (BaseType::I32, ContainerType::Vector(2),      UniformValue::I32Vector2(_)) => Ok(()),
-            (BaseType::I32, ContainerType::Vector(3),      UniformValue::I32Vector3(_)) => Ok(()),
-            (BaseType::I32, ContainerType::Vector(4),      UniformValue::I32Vector4(_)) => Ok(()),
+            (BaseType::I32, ContainerType::Vector(2), UniformValue::I32Vector2(_)) => Ok(()),
+            (BaseType::I32, ContainerType::Vector(3), UniformValue::I32Vector3(_)) => Ok(()),
+            (BaseType::I32, ContainerType::Vector(4), UniformValue::I32Vector4(_)) => Ok(()),
 
-            (BaseType::F32, ContainerType::Matrix(_, 2,2), UniformValue::F32Matrix2(_)) => Ok(()),
-            (BaseType::F32, ContainerType::Matrix(_, 3,3), UniformValue::F32Matrix3(_)) => Ok(()),
-            (BaseType::F32, ContainerType::Matrix(_, 4,4), UniformValue::F32Matrix4(_)) => Ok(()),
+            (BaseType::F32, ContainerType::Matrix(_, 2, 2), UniformValue::F32Matrix2(_)) => Ok(()),
+            (BaseType::F32, ContainerType::Matrix(_, 3, 3), UniformValue::F32Matrix3(_)) => Ok(()),
+            (BaseType::F32, ContainerType::Matrix(_, 4, 4), UniformValue::F32Matrix4(_)) => Ok(()),
 
-            _ => Err(CompatibilityError::ErrorBaseType)
+            _ => Err(CompatibilityError::ErrorBaseType),
         }
     }
 }
@@ -597,8 +623,12 @@ impl fmt::Display for CreateShaderError {
 impl Error for CreateShaderError {
     fn description(&self) -> &str {
         match *self {
-            CreateShaderError::ModelNotSupported => "The device does not support the requested shader model",
-            CreateShaderError::StageNotSupported(_) => "The device does not support the shader stage",
+            CreateShaderError::ModelNotSupported => {
+                "The device does not support the requested shader model"
+            }
+            CreateShaderError::StageNotSupported(_) => {
+                "The device does not support the shader stage"
+            }
             CreateShaderError::CompilationFailed(_) => "The shader failed to compile",
         }
     }

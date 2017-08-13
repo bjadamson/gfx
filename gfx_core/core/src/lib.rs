@@ -34,9 +34,7 @@ extern crate serde;
 #[macro_use]
 extern crate serde_derive;
 
-use format::Formatted;
 use std::any::Any;
-use std::borrow::Borrow;
 use std::error::Error;
 use std::fmt::{self, Debug};
 use std::hash::Hash;
@@ -125,7 +123,11 @@ macro_rules! define_shaders {
     }
 }
 
-define_shaders!(VertexShader, HullShader, DomainShader, GeometryShader, PixelShader);
+define_shaders!(VertexShader,
+                HullShader,
+                DomainShader,
+                GeometryShader,
+                PixelShader);
 
 /// A complete set of shaders to link a program.
 #[derive(Clone, Debug, Eq, Hash, PartialEq)]
@@ -265,51 +267,50 @@ pub trait Backend: 'static + Sized {
 
 /// Different resource types of a specific API.
 #[allow(missing_docs)]
-pub trait Resources:          Clone + Hash + Debug + Eq + PartialEq + Any {
-    type Buffer:              Clone + Hash + Debug + Eq + PartialEq + Any + Send + Sync + Copy;
-    type Shader:              Clone + Hash + Debug + Eq + PartialEq + Any + Send + Sync;
-    type Program:             Clone + Hash + Debug + Eq + PartialEq + Any + Send + Sync;
+pub trait Resources: Clone + Hash + Debug + Eq + PartialEq + Any {
+    type Buffer: Clone + Hash + Debug + Eq + PartialEq + Any + Send + Sync + Copy;
+    type Shader: Clone + Hash + Debug + Eq + PartialEq + Any + Send + Sync;
+    type Program: Clone + Hash + Debug + Eq + PartialEq + Any + Send + Sync;
     type PipelineStateObject: Clone + Hash + Debug + Eq + PartialEq + Any + Send + Sync;
-    type Texture:             Clone + Hash + Debug + Eq + PartialEq + Any + Send + Sync;
-    type ShaderResourceView:  Clone + Hash + Debug + Eq + PartialEq + Any + Send + Sync + Copy;
+    type Texture: Clone + Hash + Debug + Eq + PartialEq + Any + Send + Sync;
+    type ShaderResourceView: Clone + Hash + Debug + Eq + PartialEq + Any + Send + Sync + Copy;
     type UnorderedAccessView: Clone + Hash + Debug + Eq + PartialEq + Any + Send + Sync + Copy;
-    type RenderTargetView:    Clone + Hash + Debug + Eq + PartialEq + Any + Send + Sync + Copy;
-    type DepthStencilView:    Clone + Hash + Debug + Eq + PartialEq + Any + Send + Sync;
-    type Sampler:             Clone + Hash + Debug + Eq + PartialEq + Any + Send + Sync + Copy;
-    type Fence:               Debug + Any + Send + Sync;
-    type Semaphore:           Debug + Any + Send + Sync;
-    type Mapping:             Debug + Any + Send + Sync + mapping::Gate<Self>;
+    type RenderTargetView: Clone + Hash + Debug + Eq + PartialEq + Any + Send + Sync + Copy;
+    type DepthStencilView: Clone + Hash + Debug + Eq + PartialEq + Any + Send + Sync;
+    type Sampler: Clone + Hash + Debug + Eq + PartialEq + Any + Send + Sync + Copy;
+    type Fence: Debug + Any + Send + Sync;
+    type Semaphore: Debug + Any + Send + Sync;
+    type Mapping: Debug + Any + Send + Sync + mapping::Gate<Self>;
 }
 
-/*
-/// Different resource types of a specific API.
-pub trait Resources:          Clone + Hash + Debug + Any {
-    type ShaderLib:           Debug + Any + Send + Sync;
-    type RenderPass:          Debug + Any + Send + Sync;
-    type PipelineLayout:      Debug + Any + Send + Sync;
-    type GraphicsPipeline:    Debug + Any + Send + Sync;
-    type ComputePipeline:     Debug + Any + Send + Sync;
-    type UnboundBuffer:       Debug + Any + Send + Sync;
-    type Buffer:              Debug + Any + Send + Sync;
-    type UnboundImage:        Debug + Any + Send + Sync;
-    type Image:               Debug + Any + Send + Sync;
-    type ConstantBufferView:  Debug + Any + Send + Sync;
-    type ShaderResourceView:  Debug + Any + Send + Sync;
-    type UnorderedAccessView: Debug + Any + Send + Sync;
-    type RenderTargetView:    Debug + Any + Send + Sync;
-    type DepthStencilView:    Debug + Any + Send + Sync;
-    type FrameBuffer:         Debug + Any + Send + Sync;
-    type Sampler:             Debug + Any + Send + Sync;
-    type Semaphore:           Debug + Any + Send + Sync;
-    type Fence:               Debug + Any + Send + Sync;
-    type Heap:                Debug + Any;
-    type Mapping;
-    type DescriptorHeap:      Debug + Any;
-    type DescriptorSetPool:   Debug + Any;
-    type DescriptorSet:       Debug + Any;
-    type DescriptorSetLayout: Debug + Any;
-}
-*/
+// Different resource types of a specific API.
+// pub trait Resources:          Clone + Hash + Debug + Any {
+// type ShaderLib:           Debug + Any + Send + Sync;
+// type RenderPass:          Debug + Any + Send + Sync;
+// type PipelineLayout:      Debug + Any + Send + Sync;
+// type GraphicsPipeline:    Debug + Any + Send + Sync;
+// type ComputePipeline:     Debug + Any + Send + Sync;
+// type UnboundBuffer:       Debug + Any + Send + Sync;
+// type Buffer:              Debug + Any + Send + Sync;
+// type UnboundImage:        Debug + Any + Send + Sync;
+// type Image:               Debug + Any + Send + Sync;
+// type ConstantBufferView:  Debug + Any + Send + Sync;
+// type ShaderResourceView:  Debug + Any + Send + Sync;
+// type UnorderedAccessView: Debug + Any + Send + Sync;
+// type RenderTargetView:    Debug + Any + Send + Sync;
+// type DepthStencilView:    Debug + Any + Send + Sync;
+// type FrameBuffer:         Debug + Any + Send + Sync;
+// type Sampler:             Debug + Any + Send + Sync;
+// type Semaphore:           Debug + Any + Send + Sync;
+// type Fence:               Debug + Any + Send + Sync;
+// type Heap:                Debug + Any;
+// type Mapping;
+// type DescriptorHeap:      Debug + Any;
+// type DescriptorSetPool:   Debug + Any;
+// type DescriptorSet:       Debug + Any;
+// type DescriptorSetLayout: Debug + Any;
+// }
+//
 
 #[allow(missing_docs)]
 #[derive(Clone, Debug, PartialEq)]

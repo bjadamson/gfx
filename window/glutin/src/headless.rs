@@ -64,7 +64,7 @@ mod tests {
     #[test]
     fn test_headless() {
         use core::Headless;
-        use glutin::{HeadlessRendererBuilder};
+        use glutin::HeadlessRendererBuilder;
         let context: HeadlessContext = HeadlessRendererBuilder::new(256, 256)
             .build()
             .expect("Failed to build headless context");
