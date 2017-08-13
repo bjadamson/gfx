@@ -11,6 +11,7 @@
 // WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 // See the License for the specific language governing permissions and
 // limitations under the License.
+#[deny(dead_code)]
 
 extern crate cgmath;
 #[macro_use]
@@ -122,10 +123,10 @@ impl<B: gfx::Backend> Application<B> for App<B> {
                            Vertex::new([-1, -1, -1], [1, 1]),
                            Vertex::new([1, -1, -1], [0, 1])];
 
-        let index_data: &[u16] = &[0, 1, 2, 2, 3, 0 /* top */, 4, 5, 6, 6, 7, 4 /* bottom */,
-                                   8, 9, 10, 10, 11, 8 /* right */, 12, 13, 14, 14, 15,
-                                   12 /* left */, 16, 17, 18, 18, 19, 16 /* front */, 20, 21,
-                                   22, 22, 23, 20 /* back */];
+        let index_data: &[u16] = &[0, 1, 2, 2, 3, 0 /* top */, 4, 5, 6, 6, 7,
+                                   4 /* bottom */, 8, 9, 10, 10, 11, 8 /* right */, 12,
+                                   13, 14, 14, 15, 12 /* left */, 16, 17, 18, 18, 19,
+                                   16 /* front */, 20, 21, 22, 22, 23, 20 /* back */];
 
         let (vbuf, slice) = device.create_vertex_buffer_with_slice(&vertex_data, index_data);
 
