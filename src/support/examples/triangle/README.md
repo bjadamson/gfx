@@ -1,5 +1,5 @@
 <!--
-    Copyright 2014 The Gfx-rs Developers.
+    Copyright 2017 The Gfx-rs Developers.
 
     Licensed under the Apache License, Version 2.0 (the "License");
     you may not use this file except in compliance with the License.
@@ -14,10 +14,12 @@
     limitations under the License.
 -->
 
-## Where are the examples?
-The examples are split across three crates: core, render, support.
+# Triangle Example
 
-* [gfx_corell/examples](../src/corell/examples) contains low level examples.
-* [gfx_render/examples](../src/render/examples) contains examples that show how to use the render crate directly.
-* [gfx_support/examples](../src/support/examples) contains examples that utilize the gfx_support module, showing you how you can build an
-application with minimal setup.
+A simple example showing how to render a colored cube using vertex and index
+buffers, GLSL shaders. This is the most basic example that renders geometry,
+aside from it's advanced use of 3 colors.
+
+## Screenshot
+
+![Triangle Example](screenshot.png)

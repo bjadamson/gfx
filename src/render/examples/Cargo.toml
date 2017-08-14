@@ -1,0 +1,22 @@
+[package]
+name = "gfx-render-examples"
+version = "0.7.0"
+description = "GFX example application framework"
+homepage = "https://github.com/gfx-rs/gfx"
+keywords = ["graphics", "gamedev"]
+license = "Apache-2.0"
+authors = ["The Gfx-rs Developers"]
+documentation = "https://docs.rs/gfx_project"
+exclude = ["bors.toml", ".travis.yml"]
+workspace = "../../.."
+
+[dependencies]
+glutin = "0.9"
+gfx = { path = "../../render", version = "0.16" }
+gfx_window_glutin = { path = "../../window/glutin", version = "0.17" }
+
+[dev-dependencies]
+
+[[example]]
+name = "triangle"
+path = "triangle/main.rs"
